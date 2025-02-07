@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-    <div class="card p-4 shadow-lg" style="width: 400px;">
+    <div class="card p-5 shadow-lg mb-3 w-100" style="width: 400px;">
         <h3 class="text-center mb-3">Create an Account</h3>
 
         <!-- Display Form Errors -->
@@ -67,7 +67,7 @@
                 {{ form.password2 }}
                 <small class="text-danger">{{ form.password2.errors }}</small>
             </div>
-            <button type="submit" class="btn btn-success w-100">Sign Up</button>
+            <button type="submit" style="background-color: black;"class="btn btn-success w-100">Sign Up</button>
         </form>
         <div class="text-center mt-3">
             <small>Already have an account? <a href="{% url 'login' %}">Login</a></small>
