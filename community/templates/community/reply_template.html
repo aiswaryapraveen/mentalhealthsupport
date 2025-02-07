@@ -1,26 +1,34 @@
-<div class="card mt-2 ms-3">
+<div class="card mt-2 ms-4"> <!-- Indent nested replies -->
     <div class="card-body">
         <strong>{{ reply.user.username }}</strong> - {{ reply.created_at|date:"Y-m-d H:i" }}
         <p>{{ reply.content }}</p>
 
-        <!-- Delete Reply (Only for the Reply Owner) -->
-        {% if request.user == reply.user %}
-            <form method="post" style="display: inline;">
+        <!-- Reply Button for Nested Replies -->
+        <div class="d-flex justify-content-between align-items-center mt-2">
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="toggleReplyForm('{{ reply.id }}')"> <i class="fas fa-reply"></i> Reply </button>
+
+            {% if request.user == reply.user %}
+                            <!-- Delete Button -->
+                <form method="post" class="d-inline">
                 {% csrf_token %}
-                <input type="hidden" name="delete_reply_id" value="{{ reply.id }}">
-                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    <input type="hidden" name="delete_reply_id" value="{{ reply.id }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+        <!-- Reply Form for Nested Replies (Initially Hidden) -->
+        <div id="reply-form-{{ reply.id }}" class="mt-2" style="display: none;">
+            <form method="post" class="mb-2">
+                {% csrf_token %}
+                {{ reply_form.content }}
+                <input type="hidden" name="parent_id" value="{{ reply.id }}">
+                <button type="submit" class="btn btn-sm btn-primary mt-1">Post Reply</button>
             </form>
-        {% endif %}
+        </div>
 
-        <!-- Reply Form for Nested Replies -->
-        <form method="post" class="mb-2">
-            {% csrf_token %}
-            <input type="hidden" name="parent_id" value="{{ reply.id }}">
-            <textarea name="content" class="form-control mb-2" placeholder="Reply to this comment..." required></textarea>
-            <button type="submit" class="btn btn-sm btn-secondary">Reply</button>
-        </form>
-
-        <!-- Recursively Display Nested Replies -->
+        <!-- Display Nested Replies -->
         {% for nested_reply in replies %}
             {% if nested_reply.parent == reply %}
                 {% include "community/reply_template.html" with reply=nested_reply replies=replies %}

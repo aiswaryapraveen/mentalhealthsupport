@@ -2,7 +2,7 @@ from django import forms
 from .models import Post, Reply
 
 class PostForm(forms.ModelForm):
-    content = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Share your thoughts...'}))
+    content = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control','rows':3, 'placeholder': 'Share your thoughts...'}))
 
     class Meta:
         model = Post

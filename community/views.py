@@ -92,8 +92,17 @@ def community_feed(request):
 
         # Deleting a reply
         elif "delete_reply_id" in request.POST:
-            reply_to_delete = get_object_or_404(Reply, id=request.POST.get("delete_reply_id"), user=request.user)
-            reply_to_delete.delete()
+            reply_id = request.POST.get("delete_reply_id")
+            print(f"Attempting to delete reply with ID: {reply_id}")  # Debugging Output
+
+            try:
+                reply_to_delete = get_object_or_404(Reply, id=reply_id, user=request.user)
+                reply_to_delete.delete()
+                print("Reply successfully deleted!")  # Debugging Output
+            except Http404:
+                print("Reply not found!")  # Debugging Output
+                return HttpResponse("Reply not found", status=404)
+
             return redirect("community_feed")
 
     return render(request, "community/community_feed.html", {
@@ -135,11 +144,23 @@ def reply_to_reply(request, reply_id):
             return redirect('community_feed')  # Redirect to community feed
 
     return render(request, 'community/reply_to_reply.html', {'parent_reply': parent_reply})
+from django.http import HttpResponse
+
 @login_required
 def delete_reply(request, reply_id):
-    reply = get_object_or_404(Reply, id=reply_id)
+    print(f"Received DELETE request for reply_id: {reply_id}")  # Debugging Output
 
-    if reply.user == request.user:  # Only allow the owner to delete their reply
+    try:
+        reply = Reply.objects.get(id=reply_id)
+        print(f"Reply found: {reply.content}")  # Check if the reply exists
+    except Reply.DoesNotExist:
+        return HttpResponse("Reply not found", status=404)  # Return response instead of crashing
+
+    if reply.user == request.user:  # Check if user is allowed to delete
         reply.delete()
+        print("Reply deleted successfully!")  # Debugging Output
+    else:
+        return HttpResponse("Unauthorized", status=403)
 
     return redirect('community_feed')
+
