@@ -1,0 +1,54 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="container">
+        <h2>Community Feed</h2>
+    
+        <!-- Create Post Form -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ post_form.as_p }}
+                    <button type="submit" name="create_post" class="btn btn-primary">Post</button>
+                </form>
+            </div>
+        </div>
+    
+        <!-- Loop through all posts -->
+        {% for post in posts %}
+            <div class="card mt-3">
+                <div class="card-body">
+                    <strong>{{ post.user.username }}</strong> - {{ post.created_at|date:"Y-m-d H:i" }}
+                    <p>{{ post.content }}</p>
+    
+                    <!-- Delete Post (Only for Post Owner) -->
+                    {% if request.user == post.user %}
+                        <form method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_post_id" value="{{ post.id }}">
+                            <button type="submit" class="btn btn-sm btn-danger">Delete Post</button>
+                        </form>
+                    {% endif %}
+    
+                    <!-- Reply Form for Post -->
+                    <form method="post" class="mb-2">
+                        {% csrf_token %}
+                        {{ reply_form.as_p }}
+                        <input type="hidden" name="post_id" value="{{ post.id }}">
+                        <button type="submit" class="btn btn-sm btn-primary">Reply</button>
+                    </form>
+    
+                    <!-- Display Replies to the Post -->
+                    {% for reply in replies %}
+                        {% if reply.post == post and not reply.parent %}
+                            {% include "community/reply_template.html" with reply=reply replies=replies %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

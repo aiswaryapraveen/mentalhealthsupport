@@ -1,0 +1,24 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Reply to Reply</h2>
+    <div class="card mb-3">
+        <div class="card-body">
+            <strong>{{ parent_reply.user.username }}</strong>
+            <p>{{ parent_reply.content }}</p>
+            <small class="text-muted">{{ parent_reply.created_at|date:"D, d M Y H:i" }}</small>
+        </div>
+    </div>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="content" class="form-label">Your Reply</label>
+            <textarea name="content" id="content" class="form-control" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Reply</button>
+        <a href="{% url 'community_feed' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

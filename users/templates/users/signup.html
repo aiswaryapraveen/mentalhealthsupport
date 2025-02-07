@@ -1,0 +1,93 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Sign Up - Heals{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card p-4 shadow-lg" style="width: 400px;">
+        <h3 class="text-center mb-3">Create an Account</h3>
+
+        <!-- Display Form Errors -->
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            <ul>
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <li><strong>{{ field|capfirst }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.username.label_tag }}
+                {{ form.username }}
+                <small class="text-danger">{{ form.username.errors }}</small>
+            </div>
+            <div class="mb-3">
+                {{ form.email.label_tag }}
+                {{ form.email }}
+                <small class="text-danger">{{ form.email.errors }}</small>
+            </div>
+            <div class="mb-3">
+                {{ form.first_name.label_tag }}
+                {{ form.first_name }}
+                <small class="text-danger">{{ form.first_name.errors }}</small>
+            </div>
+            <div class="mb-3">
+                {{ form.last_name.label_tag }}
+                {{ form.last_name }}
+                <small class="text-danger">{{ form.last_name.errors }}</small>
+            </div>
+            <div class="mb-3">
+                {{ form.age.label_tag }}
+                {{ form.age }}
+                <small class="text-danger">{{ form.age.errors }}</small>
+            </div>
+            <div class="mb-3">
+                {{ form.dob.label_tag }}
+                {{ form.dob }}
+                <small class="text-danger">{{ form.dob.errors }}</small>
+            </div>
+            <div class="mb-3">
+                {{ form.gender.label_tag }}
+                {{ form.gender }}
+                <small class="text-danger">{{ form.gender.errors }}</small>
+            </div>
+            <div class="mb-3">
+                {{ form.password1.label_tag }}
+                {{ form.password1 }}
+                <small class="text-danger">{{ form.password1.errors }}</small>
+            </div>
+            <div class="mb-3">
+                {{ form.password2.label_tag }}
+                {{ form.password2 }}
+                <small class="text-danger">{{ form.password2.errors }}</small>
+            </div>
+            <button type="submit" class="btn btn-success w-100">Sign Up</button>
+        </form>
+        <div class="text-center mt-3">
+            <small>Already have an account? <a href="{% url 'login' %}">Login</a></small>
+        </div>
+    </div>
+</div>
+
+<style>
+    input, select {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ced4da;
+        border-radius: 5px;
+    }
+    label {
+        font-weight: bold;
+    }
+    .card {
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}

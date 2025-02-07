@@ -1,0 +1,30 @@
+<div class="card mt-2 ms-3">
+    <div class="card-body">
+        <strong>{{ reply.user.username }}</strong> - {{ reply.created_at|date:"Y-m-d H:i" }}
+        <p>{{ reply.content }}</p>
+
+        <!-- Delete Reply (Only for the Reply Owner) -->
+        {% if request.user == reply.user %}
+            <form method="post" style="display: inline;">
+                {% csrf_token %}
+                <input type="hidden" name="delete_reply_id" value="{{ reply.id }}">
+                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+            </form>
+        {% endif %}
+
+        <!-- Reply Form for Nested Replies -->
+        <form method="post" class="mb-2">
+            {% csrf_token %}
+            <input type="hidden" name="parent_id" value="{{ reply.id }}">
+            <textarea name="content" class="form-control mb-2" placeholder="Reply to this comment..." required></textarea>
+            <button type="submit" class="btn btn-sm btn-secondary">Reply</button>
+        </form>
+
+        <!-- Recursively Display Nested Replies -->
+        {% for nested_reply in replies %}
+            {% if nested_reply.parent == reply %}
+                {% include "community/reply_template.html" with reply=nested_reply replies=replies %}
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>

@@ -1,0 +1,21 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mt-4">Welcome, {{ user.username }}!</h2>
+    <p class="lead">Track your mental well-being daily.</p>
+
+    <!-- Daily Journal Section -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <h4 class="card-title">Daily Journal</h4>
+            <p>Write about your day and how you're feeling.</p>
+            <form method="POST">
+                {% csrf_token %}
+                <textarea class="form-control" name="journal_entry" rows="5" placeholder="How was your day?"></textarea>
+                <button type="submit" class="btn btn-primary mt-2">Save Entry</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
