@@ -1,9 +1,115 @@
 {% extends 'core/base.html' %}
 
 {% block content %}
-<div class="container text-center">
-    <h1 class="mt-5">Welcome to Heals</h1>
-    <p class="lead">Your mental well-being matters. Register or log in to get started.</p>
-    <a href="{% url 'signup' %}" class="btn btn-primary btn-lg">Get Started</a>
-</div>
+<!-- Hero Section -->
+<section class="hero-section d-flex align-items-center text-center text-white">
+    <div class="container">
+        <h1 class="display-3 fw-bold" style="color:black">Find Your Inner Peace</h1>
+        <p class="lead" style="color : rgb(18, 18, 18)">Track, analyze, and improve your mental well-being with Heals.</p>
+        <a href="{% url 'signup' %}" class="btn btn-light btn-lg mt-3 px-5 shadow-lg">Explore More</a>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section text-center py-5">
+    <div class="container">
+        <h2 class="fw-bold">How Heals Can Help You</h2>
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="feature-card p-4 shadow-sm rounded">
+                    <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                    <h4>Mood Analysis</h4>
+                    <p>Understand your emotional patterns through AI-driven insights.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card p-4 shadow-sm rounded">
+                    <i class="fas fa-leaf fa-3x text-success mb-3"></i>
+                    <h4>Relaxation Techniques</h4>
+                    <p>Access guided breathing exercises and stress relief activities.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card p-4 shadow-sm rounded">
+                    <i class="fas fa-comments fa-3x text-danger mb-3"></i>
+                    <h4>Community Support</h4>
+                    <p>Join discussions and connect with people who understand you.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testimonials-section py-5 text-center">
+    <div class="container">
+        <h2 class="fw-bold">What Our Users Say</h2>
+        <div class="row mt-5">
+            <div class="col-md-6">
+                <div class="testimonial-card p-4 shadow rounded">
+                    <p class="fst-italic">"Heals has helped me regain control over my emotions and feel more at peace."</p>
+                    <h5 class="fw-bold mt-3">— Olivia R.</h5>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="testimonial-card p-4 shadow rounded">
+                    <p class="fst-italic">"The mindfulness exercises have made a big difference in my daily life!"</p>
+                    <h5 class="fw-bold mt-3">— Daniel M.</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call-to-Action Section -->
+<section class="cta-section text-center text-white py-5">
+    <div class="container">
+        <h2 class="fw-bold" style="color:black">Start Your Healing Journey</h2>
+        <p style="color:rgb(21, 20, 20)">Sign up now and take the first step towards better mental well-being.</p>
+        <a href="{% url 'signup' %}" class="btn btn-light btn-lg mt-3 px-5 shadow-lg">Get Started</a>
+    </div>
+</section>
+
+<!-- Styles -->
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f5f7fa;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Features Section */
+    .feature-card {
+        background: white;
+        border-radius: 12px;
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Testimonials */
+    .testimonials-section {
+        background: linear-gradient(to right, #f5f7fa, #e2e8f0);
+    }
+
+    .testimonial-card {
+        background: white;
+        border-radius: 12px;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .testimonial-card:hover {
+        transform: scale(1.05);
+    }
+</style>
 {% endblock %}

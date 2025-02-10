@@ -3,9 +3,9 @@
 {% block title %}Sign Up - Heals{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-    <div class="card p-5 shadow-lg mb-3 w-100" style="width: 400px;">
-        <h3 class="text-center mb-3">Create an Account</h3>
+<div class="d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="card p-5 shadow-lg mb-3 w-100" style="max-width: 450px; border-radius: 12px;">
+        <h3 class="text-center mb-4" style="color: #333;">Create an Account</h3>
 
         <!-- Display Form Errors -->
         {% if form.errors %}
@@ -43,14 +43,14 @@
                 <small class="text-danger">{{ form.last_name.errors }}</small>
             </div>
             <div class="mb-3">
-                {{ form.age.label_tag }}
-                {{ form.age }}
-                <small class="text-danger">{{ form.age.errors }}</small>
-            </div>
-            <div class="mb-3">
                 {{ form.dob.label_tag }}
                 {{ form.dob }}
                 <small class="text-danger">{{ form.dob.errors }}</small>
+            </div>
+            <div class="mb-3">
+                {{ form.age.label_tag }}
+                <input type="text" id="age" name="age" class="form-control" readonly>
+                <small class="text-danger">{{ form.age.errors }}</small>
             </div>
             <div class="mb-3">
                 {{ form.gender.label_tag }}
@@ -67,27 +67,78 @@
                 {{ form.password2 }}
                 <small class="text-danger">{{ form.password2.errors }}</small>
             </div>
-            <button type="submit" style="background-color: black;"class="btn btn-success w-100">Sign Up</button>
+            <button type="submit" class="btn btn-primary w-100">Sign Up</button>
         </form>
         <div class="text-center mt-3">
-            <small>Already have an account? <a href="{% url 'login' %}">Login</a></small>
+            <small>Already have an account? <a href="{% url 'login' %}" style="color: #007bff;">Login</a></small>
         </div>
     </div>
 </div>
 
+<!-- JavaScript to calculate age from DOB -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const dobField = document.getElementById('id_dob');
+        const ageField = document.getElementById('age');
+
+        dobField.addEventListener('input', function () {
+            const dob = new Date(dobField.value);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const monthDifference = today.getMonth() - dob.getMonth();
+
+            // Adjust age if the birthday hasn't occurred yet this year
+            if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+
+            // Update the age field with the calculated age
+            ageField.value = age;
+        });
+    });
+</script>
+
 <style>
     input, select {
         width: 100%;
-        padding: 8px;
+        padding: 10px;
         margin-top: 5px;
-        border: 1px solid #ced4da;
         border-radius: 5px;
+        border: 1px solid #ddd;
+        font-size: 14px;
     }
+
     label {
-        font-weight: bold;
+        font-weight: 600;
+        font-size: 16px;
+        color: #333;
     }
+
     .card {
-        border-radius: 10px;
+        background-color: #f9f9f9;
+        border-radius: 15px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary {
+        background-color: #4C8BF5;
+        border-color: #4C8BF5;
+        padding: 10px;
+        border-radius: 5px;
+        font-weight: 600;
+    }
+
+    .btn-primary:hover {
+        background-color: #396ac3;
+        border-color: #396ac3;
+    }
+
+    .text-center small {
+        font-size: 14px;
+    }
+
+    .form-control[readonly] {
+        background-color: #e9ecef;
     }
 </style>
 {% endblock %}
