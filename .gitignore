@@ -21,7 +21,7 @@ db.sqlite3
 !**/migrations/__init__.py
 
 # Media and Static files
-/media/  # Avoid tracking uploaded user files
+/media/document  # Avoid tracking uploaded user files
 /staticfiles/  # Avoid generated static files (use collectstatic instead)
 
 # Ignore environment variables
