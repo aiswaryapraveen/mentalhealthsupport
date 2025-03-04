@@ -1,0 +1,82 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-center fw-bold">Professional Requests Management</h2>
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-primary text-white fw-bold">
+            Requests
+        </div>
+        <div class="card-body">
+            {% if profiles %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle text-center">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>User</th>
+                            <th>Qualification Details</th>
+                            <th>Experience (Years)</th>
+                            <th>Specialization</th>
+                            <th>Qualification Document</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for profile in profiles %}
+                        <tr>
+                            <td class="fw-bold">{{ profile.user.username }}</td>
+                            <td class="text-wrap text-break">{{ profile.qualification_details }}</td>
+                            <td>{{ profile.experience }}</td>
+                            <td>{{ profile.specialization|default:"N/A" }}</td>
+                            <td>
+                                {% if profile.qualification_document %}
+                                    <a href="{{ profile.qualification_document.url }}" target="_blank" class="btn btn-sm btn-info">View</a>
+                                {% else %}
+                                    <span class="text-muted">No Document</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if profile.is_approved %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                    {% if not profile.is_approved %}
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="profile_id" value="{{ profile.id }}">
+                                        <button type="submit" name="approve" class="btn btn-success btn-sm">Approve</button>
+                                    </form>
+                                    {% endif %}
+                                    
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="profile_id" value="{{ profile.id }}">
+                                        <button type="submit" name="reject" class="btn btn-warning btn-sm">Reject</button>
+                                    </form>
+                                    
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="profile_id" value="{{ profile.id }}">
+                                        <button type="submit" name="delete" class="btn btn-danger btn-sm">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="alert alert-info text-center">No professional profile requests available.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

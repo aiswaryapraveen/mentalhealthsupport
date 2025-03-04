@@ -11,20 +11,42 @@ __pycache__/
 *.pot
 *.pyc
 *.pyo
+
+# Database files (SQLite, not needed for PostgreSQL)
 *.sqlite3
 db.sqlite3
 
-# Migrations
-*/migrations/*
+# Migrations (excluding `__init__.py` to keep Django happy)
+**/migrations/** 
+!**/migrations/__init__.py
 
 # Media and Static files
-/media/
-/staticfiles/
+/media/  # Avoid tracking uploaded user files
+/staticfiles/  # Avoid generated static files (use collectstatic instead)
 
-# Environment variables
+# Ignore environment variables
 .env
+*.env
 
-# Virtual environment
+# Virtual environments
 venv/
 env/
 heenv/
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python dependency files (optional)
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Docker-related files (if using Docker)
+.dockerignore
+docker-compose.override.yml
+
+# MacOS and Windows system files
+.DS_Store
+Thumbs.db

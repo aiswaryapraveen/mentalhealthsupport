@@ -86,24 +86,29 @@ def community_feed(request):
 
         # Deleting a post
         elif "delete_post_id" in request.POST:
-            post_to_delete = get_object_or_404(Post, id=request.POST.get("delete_post_id"), user=request.user)
-            post_to_delete.delete()
-            return redirect("community_feed")
+            post_id = request.POST.get("delete_post_id")
+            if not post_id:
+                return HttpResponse("Invalid Post ID", status=400)
+            try:
+                post_to_delete = Post.objects.get(id=post_id)
+            except Post.DoesNotExist:
+                return HttpResponse("Post not found", status=404)
+            if request.user == post_to_delete.user or request.user.is_superuser:
+                post_to_delete.delete()
+                return redirect("community_feed")
+            else:
+                return HttpResponse("Unauthorized", status=403) 
 
         # Deleting a reply
         elif "delete_reply_id" in request.POST:
             reply_id = request.POST.get("delete_reply_id")
             print(f"Attempting to delete reply with ID: {reply_id}")  # Debugging Output
-
-            try:
-                reply_to_delete = get_object_or_404(Reply, id=reply_id, user=request.user)
+            reply_to_delete = get_object_or_404(Reply, id=reply_id)
+            if request.user == reply_to_delete.user or request.user.is_superuser:
                 reply_to_delete.delete()
-                print("Reply successfully deleted!")  # Debugging Output
-            except Http404:
-                print("Reply not found!")  # Debugging Output
-                return HttpResponse("Reply not found", status=404)
-
-            return redirect("community_feed")
+                return redirect("community_feed")
+            else:
+                return HttpResponse("Unauthorized", status=403)
 
     return render(request, "community/community_feed.html", {
         "posts": posts,

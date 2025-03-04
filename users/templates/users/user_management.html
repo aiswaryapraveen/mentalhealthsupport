@@ -1,0 +1,175 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4 text-center fw-bold">User Management</h2>
+
+    <!-- Regular Users Table -->
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-primary text-white fw-bold">👤 Regular Users</div>
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Username</th>
+                        <th>Full Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr id="user-row-{{ user.id }}">
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.first_name }} {{ user.last_name }}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm delete-user" data-id="{{ user.id }}">
+                            Remove
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="text-center text-muted">No regular users found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Professionals Table -->
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-success text-white fw-bold">🎓 Professionals</div>
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead class="table-success">
+                    <tr>
+                        <th>Username</th>
+                        <th>Full Name</th>
+                        <th>Qualification</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pro in professionals %}
+                    <tr id="user-row-{{ pro.id }}">
+                        <td>{{ pro.username }}</td>
+                        <td>{{ pro.first_name }} {{ pro.last_name }}</td>
+                        <td>{{ pro.professionalprofile.qualification_details }}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm delete-user" data-id="{{ pro.id }}">
+                                Remove
+                            </button>
+                            <button class="btn btn-warning btn-sm remove-professional" data-id="{{ pro.id }}">
+                                Remove as Professional
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center text-muted">No professionals found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Admins Table -->
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-danger text-white fw-bold">🛡️ Admins</div>
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead class="table-danger">
+                    <tr>
+                        <th>Username</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for admin in admins %}
+                    <tr>
+                        <td>{{ admin.username }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td class="text-center text-muted">No admins found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- SweetAlert & AJAX -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        function getCSRFToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]').value;
+        }
+
+        // DELETE USER FUNCTION
+        document.querySelectorAll(".delete-user").forEach(button => {
+            button.addEventListener("click", function () {
+                let userId = this.getAttribute("data-id");
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: "This user will be permanently deleted!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "Yes, delete!"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(`/users/delete-user/${userId}/`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": getCSRFToken()
+                            }
+                        }).then(response => response.json())
+                          .then(data => {
+                              if (data.success) {
+                                  Swal.fire("Deleted!", "User has been removed.", "success");
+                                  document.getElementById(`user-row-${userId}`).remove();
+                              } else {
+                                  Swal.fire("Error!", data.error || "Failed to remove the user.", "error");
+                              }
+                          });
+                    }
+                });
+            });
+        });
+
+        // REMOVE PROFESSIONAL STATUS FUNCTION
+        document.querySelectorAll(".remove-professional").forEach(button => {
+            button.addEventListener("click", function () {
+                let userId = this.getAttribute("data-id");
+                Swal.fire({
+                    title: "Remove Professional Status?",
+                    text: "This user will be reverted to a normal user.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#f39c12",
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "Yes, remove!"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(`/users/remove-professional/${userId}/`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": getCSRFToken()
+                            }
+                        }).then(response => response.json())
+                          .then(data => {
+                              if (data.success) {
+                                  Swal.fire("Updated!", data.success, "success").then(() => location.reload());
+                              } else {
+                                  Swal.fire("Error!", data.error || "Failed to update the user.", "error");
+                              }
+                          });
+                    }
+                });
+            });
+        });
+    });
+</script>
+
+{% endblock %}

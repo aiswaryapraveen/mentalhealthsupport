@@ -3,19 +3,145 @@
 {% block content %}
 <div class="container">
     <h2 class="mt-4">Welcome, {{ user.username }}!</h2>
-    <p class="lead">Track your mental well-being daily.</p>
-
+    
+    {% if not user.is_superuser and not user.is_professional %}
     <!-- Daily Journal Section -->
-    <div class="card mt-4">
+    <p class="lead text-muted">Track your mental well-being daily.</p>
+    
+    <div class="card mt-4 shadow-lg border-0">
         <div class="card-body">
             <h4 class="card-title">Daily Journal</h4>
-            <p>Write about your day and how you're feeling.</p>
+            <p class="text-muted">Write about your day and how you're feeling.</p>
             <form method="POST">
                 {% csrf_token %}
-                <textarea class="form-control" name="journal_entry" rows="5" placeholder="How was your day?"></textarea>
-                <button type="submit" class="btn btn-primary mt-2">Save Entry</button>
+                <textarea class="form-control rounded-3 shadow-sm" name="journal_entry" rows="5" placeholder="How was your day?"></textarea>
+                <button type="submit" class="btn btn-primary mt-3 w-100 fw-bold">Save Entry</button>
             </form>
         </div>
     </div>
+
+    <!-- Journal Entries Section -->
+    <h4 class="mt-5">Your Journal Entries</h4>
+    {% if entries %}
+    <div class="accordion mt-3" id="journalEntries">
+        {% for entry in entries %}
+        <div class="accordion-item border-0 shadow-sm rounded">
+            <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+                    🗓️ {{ entry.created_at|date:"jS F Y, g:i A" }}
+                </button>
+            </h2>
+            <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#journalEntries">
+                <div class="accordion-body bg-light rounded">
+                    <p class="text-dark">{{ entry.text }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted fst-italic">No journal entries yet. Start writing your thoughts!</p>
+    {% endif %}
+    {% endif %}
+
+    <!-- Admin and Professional Sections -->
+    {% if user.is_superuser %}
+    <div class="admin-dashboard mt-5">
+    <h3 class="text-center text-danger fw-bold">⚡ Admin Dashboard</h3>
+
+    <!-- Admin Statistics -->
+    <div class="row text-center mt-4">
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 admin-stat-card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-primary">
+                        👥 Total Users
+                    </h5>
+                    <p class="fw-bold display-6 count" data-count="{{ total_users }}">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 admin-stat-card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-success">
+                        🎓 Professionals
+                    </h5>
+                    <p class="fw-bold display-6 count" data-count="{{ total_professionals }}">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 admin-stat-card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-warning">
+                        ⏳ Pending Approvals
+                    </h5>
+                    <p class="fw-bold display-6 count" data-count="{{ pending_approvals }}">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Animations & Hover Effects -->
+<style>
+    .admin-stat-card {
+        transition: transform 0.3s ease-in-out;
+        border-radius: 12px;
+    }
+    .admin-stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+</style>
+
+    <!-- Animated Counter -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".count").forEach(counter => {
+            let countTo = parseInt(counter.getAttribute("data-count"));
+            let count = 0;
+            let speed = Math.ceil(countTo / 50); // Adjust speed of counting
+
+            let updateCount = setInterval(() => {
+                count += speed;
+                if (count >= countTo) {
+                    counter.textContent = countTo;
+                    clearInterval(updateCount);
+                } else {
+                    counter.textContent = count;
+                }
+            }, 30); // Adjust interval speed
+        });
+    });
+</script>
+{% endif %}
+{% if user.is_professional %}
+    <div class="alert alert-info mt-4 text-center fw-bold">
+        🎓 Mentor-Session Dashboard
+    </div>
+{% endif %}
+</div>
+
+<!-- Additional Styling -->
+<style>
+    .accordion-button:focus {
+        box-shadow: 0 0 10px rgba(0, 123, 255, 0.5) !important;
+    }
+    .accordion-button {
+        transition: background 0.3s ease-in-out;
+    }
+    .accordion-button:hover {
+        background: #f8f9fa !important;
+    }
+    .btn-primary {
+        background: #007bff;
+        border: none;
+    }
+    .btn-primary:hover {
+        background: #0056b3;
+    }
+</style>
+
 {% endblock %}

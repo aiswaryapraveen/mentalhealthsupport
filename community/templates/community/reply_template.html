@@ -1,13 +1,24 @@
 <div class="card mt-2 ms-4"> <!-- Indent nested replies -->
     <div class="card-body">
-        <strong>{{ reply.user.username }}</strong> - {{ reply.created_at|date:"Y-m-d H:i" }}
+        <div class="d-flex justify-content-between">
+        <strong>
+            {% if reply.user.is_superuser %}
+                Admin
+            {% else %}
+                {{ reply.user.username }}
+            {% endif %}
+        </strong>
+        <small class="text-muted">{{ reply.created_at|timesince }} ago</small>
+        </div>
+        {% if reply.user.is_professional %}
+            <div style="font-size: 0.85em; opacity: 0.7; margin-top: -4px;">Professional</div>
+        {% endif %}
         <p>{{ reply.content }}</p>
-
         <!-- Reply Button for Nested Replies -->
         <div class="d-flex justify-content-between align-items-center mt-2">
             <button type="button" class="btn btn-sm btn-outline-primary" onclick="toggleReplyForm('{{ reply.id }}')"> <i class="fas fa-reply"></i> Reply </button>
 
-            {% if request.user == reply.user %}
+            {% if request.user == reply.user or request.user.is_superuser %}
                             <!-- Delete Button -->
                 <form method="post" class="d-inline">
                 {% csrf_token %}
