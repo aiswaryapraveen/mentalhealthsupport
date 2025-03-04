@@ -44,7 +44,7 @@
                     <tr>
                         <th>Username</th>
                         <th>Full Name</th>
-                        <th>Qualification</th>
+                        <th>Specialization</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -53,7 +53,7 @@
                     <tr id="user-row-{{ pro.id }}">
                         <td>{{ pro.username }}</td>
                         <td>{{ pro.first_name }} {{ pro.last_name }}</td>
-                        <td>{{ pro.professionalprofile.qualification_details }}</td>
+                        <td>{{ pro.professional1.specialization }}</td>
                         <td>
                             <button class="btn btn-danger btn-sm delete-user" data-id="{{ pro.id }}">
                                 Remove

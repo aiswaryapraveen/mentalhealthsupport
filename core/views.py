@@ -125,6 +125,7 @@ from users.models import CustomUser
 def dashboard(request):
     total_users = CustomUser.objects.count() if request.user.is_superuser else None
     total_professionals = CustomUser.objects.filter(is_professional=True).count() if request.user.is_superuser else None
+    pending_approvals = CustomUser.objects.filter(is_professional=False, is_superuser=False).count() if request.user.is_superuser else 0
 
     
 
@@ -140,7 +141,8 @@ def dashboard(request):
 
     return render(request, "core/dashboard.html", {
         "entries": entries,
-        "total_users": total_users,
-        "total_professionals": total_professionals,
+        "total_users": total_users or 0,
+        "total_professionals": total_professionals or 0,
+        "pending_approvals": pending_approvals or 0,
     })
 
