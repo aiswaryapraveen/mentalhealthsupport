@@ -1,16 +1,95 @@
-{% extends 'core/base.html' %}
+{% extends 'core/base2.html' %}
 
 {% block content %}
-<div class="container">
-    <h2 class="mt-4">Mentor Registrationnn</h2>
-    <div class="container mt-4">
-        <h2>Apply to Become a Professional</h2>
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-primary">Submit</button>
-        </form>
+<div class="container mt-5">
+    <div class="card shadow-lg p-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        {% if user.is_professional %}
+        <h2 class="text-center text-primary mb-4">Professional Identity</h2>
+            <!-- Professional Confirmation Display -->
+            <div class="card shadow-sm p-4 mb-4">
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <i class="fas fa-user text-primary"></i>
+                            <strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-birthday-cake text-warning"></i>
+                            <strong>Age:</strong> {{ user.age }} years
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-user-md text-success"></i>
+                            <strong>Specialization:</strong> {{ user.professional1.specialization }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        {% elif existing_application %}
+        <h2 class="text-center text-primary mb-4">Professional Registration</h2>
+            <!-- Pending Application Display -->
+            <div class="alert alert-warning text-center p-4">
+                <h4 class="text-danger"><i class="fas fa-clock"></i> Your Application is Under Review</h4>
+                <p class="mb-3">You have already applied to become a professional. Below are your application details:</p>
+
+                <div class="card shadow-sm p-3">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <i class="fas fa-graduation-cap text-primary"></i>
+                            <strong>Qualification:</strong> {{ existing_application.qualification_details }}
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-briefcase text-success"></i>
+                            <strong>Experience:</strong> {{ existing_application.experience }} years
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-user-md text-info"></i>
+                            <strong>Specialization:</strong> {{ existing_application.specialization }}
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-file-upload text-primary"></i>
+                            <strong>Qualification Document:</strong>
+                            {% if existing_application.qualification_document %}
+                                <a href="{{ existing_application.qualification_document.url }}" target="_blank" class="btn btn-sm btn-info">View</a>
+                            {% else %}
+                                <span class="text-muted">No Document</span>
+                            {% endif %}
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-hourglass-half text-warning"></i>
+                            <strong>Status:</strong>
+                            <span class="badge bg-warning text-dark">Pending Approval</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mt-4">
+                    <button class="btn btn-outline-primary" disabled>
+                        <i class="fas fa-spinner fa-spin"></i> Awaiting Admin Approval
+                    </button>
+                </div>
+            </div>
+        {% else %}
+        <h2 class="text-center text-primary mb-4">Professional Registration</h2>
+            <!-- Registration Form -->
+            <div class="card shadow p-4">
+                <h3 class="text-center text-secondary mb-3">Apply to Become a Professional</h3>
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        {{ form.as_p }}
+                    </div>
+                    <button type="submit" class="btn btn-success btn-block mt-3">
+                        <i class="fas fa-paper-plane"></i> Submit Application
+                    </button>
+                </form>
+            </div>
+        {% endif %}
     </div>
-    
 </div>
 {% endblock %}

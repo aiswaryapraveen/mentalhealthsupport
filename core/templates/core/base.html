@@ -3,120 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Menhel{% endblock %}</title>
+    <title>{% block title %}Heals{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            margin: 0;
+            background-color: #f8f9fa;
         }
-        html, body {
-            height: 100%;
+        .navbar {
+            background-color: black;
         }
-        .navbar-brand {
-            font-weight: bold;
-            font-size: 1.5rem;
-            color: #fff;
+        .navbar-brand, .nav-link {
+            color: white !important;
         }
-        .navbar-nav .nav-link {
-            color: #ffffff !important;
-        }
-        .navbar-nav .nav-link:hover {
+        .nav-link:hover {
             color: #ffd700 !important;
-        }
-        footer {
-            background-color: #222;
-            color: #fff;
-            padding: 20px;
-            text-align: center;
-            margin-top: auto;
-        }
-        main {
-            flex: 1; 
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: black;">
+
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="#">Heals</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand" href="{% url 'landing' %}">Heals</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    {% if user.is_authenticated %}
-                        {% if user.is_superuser %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'user_management' %}">Manage Users</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'request_view' %}">Requests Management</a>
-                        </li>
-                        {% elif user.is_professional %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">Bookings</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'community_feed' %}">Community</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">Settings</a>
-                        </li>
-                        {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">Journal</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'community_feed' %}">Community</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">Games</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">Book an appointment</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">Settings</a>
-                        </li>
-                        {% endif %}
-                        <form method="POST" action="{% url 'logout' %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-link nav-link" style="color: #fff; text-decoration: none;">Logout</button>
-                        </form>
-                    {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'landing' %}">Home</a>
+                        <a class="nav-link" href="{% url 'about' %}">About</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'login' %}">Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'signup' %}">Sign Up!</a>
+                        <a class="nav-link" href="{% url 'signup' %}">Register</a>
                     </li>
-                    {% endif %}
                 </ul>
             </div>
         </div>
     </nav>
 
-    <main class="container mt-4">
-        {% block content %}
-        {% endblock %}
-    </main>
-
-    <footer class="text-center p-3" style="background-color:black">
-        <p>&copy; 2025 Heals. All rights reserved.</p>
-        <P><a href="{% url 'mentor-reg' %}">Claim as a doctor?</a></P>
+    <div class="container mt-4">
+        {% block content %}{% endblock %}
+    </div>
+<footer class="text-center p-3" style="background-color:black">
+        <p style="color:white">&copy; 2025 Heals. All rights reserved.</p>
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

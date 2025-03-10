@@ -23,20 +23,31 @@ def signup_view(request):
 
 @login_required
 def professional_registration(request):
-    profile = None  # Default to None, meaning no automatic profile creation
+    profile = None
+    existing_application = Professional1.objects.filter(user=request.user).first()  # Check if user already applied
 
     if request.method == 'POST':
+        if existing_application:  # Prevent duplicate applications
+            messages.error(request, "You already have a pending application.")
+            return redirect('professional_registration')
+
         form = ProfessionalRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             profile = form.save(commit=False)
-            profile.user = request.user  # Assign the logged-in user
+            profile.user = request.user  # Assign user
             profile.save()
-            messages.success(request, 'Your request to become a professional has been submitted for approval.')
-            return redirect('dashboard')
+            messages.success(request, "Your request has been submitted for approval.")
+            return redirect('mentor-reg')
+
     else:
         form = ProfessionalRegistrationForm()
 
-    return render(request, 'users/mentor-reg.html', {'form': form})
+    return render(request, 'users/mentor-reg.html', {
+        'form': form,
+        'existing_application': existing_application
+    })
+
+
 from .models import CustomUser  # Import your CustomUser model
 
 '''@login_required
@@ -58,7 +69,7 @@ def user_management(request):
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import CustomUser  # ✅ Import CustomUser
+from .models import CustomUser, Professional1  # ✅ Import CustomUser
 
 @login_required
 #def delete_user(request, user_id):
@@ -114,11 +125,15 @@ def remove_professional_status(request, user_id):
         return JsonResponse({'error': "Unauthorized action!"}, status=403)
 
     user = get_object_or_404(CustomUser, id=user_id)
-    
-    if hasattr(user, 'professionalprofile'):
-        user.professionalprofile.delete()
+
+    if user.is_professional:  # Directly check the field instead of hasattr()
         user.is_professional = False
         user.save(update_fields=['is_professional'])
+
+        professional_request = Professional1.objects.filter(user=user).first()
+        if professional_request:
+            professional_request.is_approved = False
+            professional_request.save(update_fields=['is_approved'])
         return JsonResponse({'success': f"{user.username} is no longer a professional!"})
-    
+
     return JsonResponse({'error': "This user is not a professional."}, status=400)

@@ -1,127 +1,208 @@
-{% extends 'core/base.html' %}
+{% extends 'core/base2.html' %}
 
 {% block content %}
 <div class="container">
     <h2 class="mt-4">Welcome, {{ user.username }}!</h2>
     
     {% if not user.is_superuser and not user.is_professional %}
-    <!-- Daily Journal Section -->
-    <p class="lead text-muted">Track your mental well-being daily.</p>
-    
-    <div class="card mt-4 shadow-lg border-0">
-        <div class="card-body">
-            <h4 class="card-title">Daily Journal</h4>
-            <p class="text-muted">Write about your day and how you're feeling.</p>
-            <form method="POST">
-                {% csrf_token %}
-                <textarea class="form-control rounded-3 shadow-sm" name="journal_entry" rows="5" placeholder="How was your day?"></textarea>
-                <button type="submit" class="btn btn-primary mt-3 w-100 fw-bold">Save Entry</button>
-            </form>
-        </div>
-    </div>
+    <div class="container mt-5">
+        <h2 class="fw-bold text-center text-primary">📖 Daily Journal</h2>
+        <p class="text-muted text-center">Express yourself and track your mental well-being over time.</p>
 
-    <!-- Journal Entries Section -->
-    <h4 class="mt-5">Your Journal Entries</h4>
-    {% if entries %}
-    <div class="accordion mt-3" id="journalEntries">
-        {% for entry in entries %}
-        <div class="accordion-item border-0 shadow-sm rounded">
-            <h2 class="accordion-header" id="heading{{ forloop.counter }}">
-                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
-                    🗓️ {{ entry.created_at|date:"jS F Y, g:i A" }}
-                </button>
-            </h2>
-            <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#journalEntries">
-                <div class="accordion-body bg-light rounded">
-                    <p class="text-dark">{{ entry.text }}</p>
-                </div>
+        <!-- Journal Entry Form -->
+        <div class="card p-4 shadow-sm border-0 rounded-4 mt-4 bg-light">
+            <div class="card-body">
+                <h4 class="fw-bold text-dark">Write Your Thoughts</h4>
+                <form method="POST" action="{% url 'analyze_journal' %}">
+                    {% csrf_token %}
+                    <textarea class="form-control shadow-sm rounded-4 p-3" name="journal_entry" rows="5" placeholder="How are you feeling today?" style="resize: none; background: #f8f9fa;"></textarea>
+                    <button type="submit" class="btn btn-primary mt-3 w-100 fw-bold rounded-pill">Analyze & Save</button>
+                </form>
             </div>
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <p class="text-muted fst-italic">No journal entries yet. Start writing your thoughts!</p>
-    {% endif %}
+
+
+        <!-- Journal Entries -->
+        <h4 class="fw-bold mt-5">📜 Your Past Entries</h4>
+        {% if entries %}
+        <div class="journal-entries mt-3">
+            {% for date, date_entries in entries.items %}
+            <div class="date-group mb-3">
+                <button class="btn btn-outline-primary w-100 text-start fw-bold" data-bs-toggle="collapse" data-bs-target="#collapse-{{ date|date:'Ymd' }}">
+                    📅 {{ date }} <span class="float-end">▼</span>
+                </button>
+                
+                <div id="collapse-{{ date|date:'Ymd' }}" class="collapse mt-2">
+                    {% for entry in date_entries %}
+                    <div class="card shadow-sm border-0 rounded-4 mb-2">
+                        <div class="card-body">
+                            <p class="text-dark">{{ entry.text }}</p>
+                            {% if entry.mental_health_status == "Normal" %}
+                                <p class="fw-bold text-primary mt-2">🧠 {{ entry.sentiment }}</p>
+                            {% else %}
+                                <p class="fw-bold text-primary mt-2">🧠 {{ entry.mental_health_status }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted fst-italic text-center mt-3">No journal entries yet. Start writing your thoughts!</p>
+        {% endif %}
+
+        <!-- JavaScript for Expanding Entries -->
+        <script>
+            function showMoreEntries(btn) {
+                let parent = btn.closest('.date-group');
+                let hiddenEntries = parent.querySelectorAll('.journal-entry:nth-child(n+6)');
+                hiddenEntries.forEach(entry => entry.style.display = 'block');
+                btn.style.display = 'none'; // Hide 'View More' button after clicking
+            }
+        </script>
+        <style>
+            .journal-entries .card {
+                transition: transform 0.3s ease-in-out, box-shadow 0.3s;
+                background: #f8f9fa;
+                cursor: pointer;
+            }
+            .journal-entries .card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+            textarea:focus {
+                border-color: #007bff !important;
+                box-shadow: 0 0 10px rgba(0, 123, 255, 0.3) !important;
+            }
+            /* Custom styling for journal entry collapsible sections */
+            .date-group {
+                border-radius: 10px;
+                overflow: hidden;
+            }
+
+            .date-group button {
+                background-color: #f8f9fa;
+                color: #333;
+                padding: 12px;
+                border-radius: 8px;
+                border: none;
+                font-size: 16px;
+                transition: all 0.3s ease-in-out;
+            }
+
+            .date-group button:hover {
+                background-color: #007bff;
+                color: white;
+            }
+
+            .date-group button span {
+                transition: transform 0.3s ease-in-out;
+            }
+
+            .date-group button[aria-expanded="true"] span {
+                transform: rotate(180deg); /* Flip arrow when expanded */
+            }
+
+            .card {
+                background: white;
+                border-left: 4px solid #007bff;
+                padding: 15px;
+                transition: all 0.3s ease-in-out;
+            }
+
+            .card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .card p {
+                margin: 0;
+                color: #333;
+            }
+
+            .text-primary {
+                font-weight: bold;
+            }
+        </style>
     {% endif %}
 
-    <!-- Admin and Professional Sections -->
+
+    <!-- Admin Dashboard -->
     {% if user.is_superuser %}
     <div class="admin-dashboard mt-5">
-    <h3 class="text-center text-danger fw-bold">⚡ Admin Dashboard</h3>
+        <h3 class="text-center text-danger fw-bold">⚡ Admin Dashboard</h3>
 
-    <!-- Admin Statistics -->
-    <div class="row text-center mt-4">
-        <div class="col-md-4">
-            <div class="card shadow-lg border-0 admin-stat-card bg-light">
-                <div class="card-body">
-                    <h5 class="card-title fw-bold text-primary">
-                        👥 Total Users
-                    </h5>
-                    <p class="fw-bold display-6 count" data-count="{{ total_users }}">0</p>
+        <!-- Admin Statistics -->
+        <div class="row text-center mt-4">
+            <div class="col-md-4">
+                <div class="card shadow-lg border-0 admin-stat-card bg-light">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold text-primary">👥 Total Users</h5>
+                        <p class="fw-bold display-6 count" data-count="{{ total_users }}">0</p>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-lg border-0 admin-stat-card bg-light">
-                <div class="card-body">
-                    <h5 class="card-title fw-bold text-success">
-                        🎓 Professionals
-                    </h5>
-                    <p class="fw-bold display-6 count" data-count="{{ total_professionals }}">0</p>
+            <div class="col-md-4">
+                <div class="card shadow-lg border-0 admin-stat-card bg-light">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold text-success">🎓 Professionals</h5>
+                        <p class="fw-bold display-6 count" data-count="{{ total_professionals }}">0</p>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-lg border-0 admin-stat-card bg-light">
-                <div class="card-body">
-                    <h5 class="card-title fw-bold text-warning">
-                        ⏳ Pending Approvals
-                    </h5>
-                    <p class="fw-bold display-6 count" data-count="{{ pending_approvals }}">0</p>
+            <div class="col-md-4">
+                <div class="card shadow-lg border-0 admin-stat-card bg-light">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold text-warning">⏳ Pending Approvals</h5>
+                        <p class="fw-bold display-6 count" data-count="{{ pending_approvals }}">0</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Animations & Hover Effects -->
-<style>
-    .admin-stat-card {
-        transition: transform 0.3s ease-in-out;
-        border-radius: 12px;
-    }
-    .admin-stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-    }
-</style>
+    <!-- Admin Styling -->
+    <style>
+        .admin-stat-card {
+            transition: transform 0.3s ease-in-out;
+            border-radius: 12px;
+        }
+        .admin-stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+    </style>
 
     <!-- Animated Counter -->
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll(".count").forEach(counter => {
-            let countTo = parseInt(counter.getAttribute("data-count"));
-            let count = 0;
-            let speed = Math.ceil(countTo / 50); // Adjust speed of counting
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".count").forEach(counter => {
+                let countTo = parseInt(counter.getAttribute("data-count"));
+                let count = 0;
+                let speed = Math.ceil(countTo / 50); 
 
-            let updateCount = setInterval(() => {
-                count += speed;
-                if (count >= countTo) {
-                    counter.textContent = countTo;
-                    clearInterval(updateCount);
-                } else {
-                    counter.textContent = count;
-                }
-            }, 30); // Adjust interval speed
+                let updateCount = setInterval(() => {
+                    count += speed;
+                    if (count >= countTo) {
+                        counter.textContent = countTo;
+                        clearInterval(updateCount);
+                    } else {
+                        counter.textContent = count;
+                    }
+                }, 30);
+            });
         });
-    });
-</script>
-{% endif %}
-{% if user.is_professional %}
+    </script>
+    {% endif %}
+
+    <!-- Professional Dashboard -->
+    {% if user.is_professional %}
     <div class="alert alert-info mt-4 text-center fw-bold">
         🎓 Mentor-Session Dashboard
     </div>
-{% endif %}
+    {% endif %}
 </div>
 
 <!-- Additional Styling -->
