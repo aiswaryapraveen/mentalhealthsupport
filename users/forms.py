@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import CustomUser, Professional1
+from core.models import Goal
+
 
 class SignupForm(UserCreationForm):
     dob = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
@@ -27,4 +29,12 @@ class ProfessionalRegistrationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['qualification_document'].widget.attrs.update({'class': 'form-control'})
+
+class GoalForm(forms.ModelForm):
+    class Meta:
+        model = Goal
+        fields = ["text"]
+        widgets = {
+            "text": forms.TextInput(attrs={"class": "form-control", "placeholder": "Enter a new goal"})
+        }
 

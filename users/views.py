@@ -1,13 +1,60 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from .forms import SignupForm
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from .forms import ProfessionalRegistrationForm
-
-
-
+from .forms import ProfessionalRegistrationForm, GoalForm
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from core.models import Goal, PersonalGoal
+from .models import CustomUser, Professional1
+
+def is_admin(user):
+    return user.is_staff
+
+@user_passes_test(is_admin)
+@csrf_exempt
+def add_goal(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        goal_text = data.get("goal_text", "").strip()
+        
+        if goal_text:
+            Goal.objects.create(text=goal_text)
+            return JsonResponse({"success": "Goal added successfully!"})
+        else:
+            return JsonResponse({"error": "Goal text cannot be empty!"}, status=400)
+
+@user_passes_test(is_admin)
+@csrf_exempt
+def delete_goal(request, goal_id):
+    if request.method == "POST":
+        try:
+            goal = Goal.objects.get(id=goal_id)
+            goal.delete()
+            return JsonResponse({"success": "Goal deleted successfully!"})
+        except Goal.DoesNotExist:
+            return JsonResponse({"error": "Goal not found!"}, status=404)
+@user_passes_test(is_admin)
+def manage_goals(request):
+    goals = Goal.objects.all()
+    return render(request, "users/manage_goals.html", {"goals": goals})
+
+@user_passes_test(is_admin)
+def delete_goal(request, goal_id):
+    goal = get_object_or_404(Goal, id=goal_id)
+    goal.delete()
+    messages.success(request, "Goal deleted successfully!")
+    return redirect("manage_goals")
+
+def add_personal_goal(request):
+    if request.method == "POST":
+        goal_text = request.POST.get("goal_text")
+        if goal_text:
+            PersonalGoal.objects.create(user=request.user, text=goal_text)
+            return redirect("goals")
+    return JsonResponse({"error": "Invalid request"}, status=400)
 
 def signup_view(request):
     if request.method == "POST":
@@ -15,7 +62,7 @@ def signup_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('dashboard')  # Redirect after login
+            return redirect('dashboard')
     else:
         form = SignupForm()
     return render(request, 'users/signup.html', {'form': form})
@@ -46,53 +93,6 @@ def professional_registration(request):
         'form': form,
         'existing_application': existing_application
     })
-
-
-from .models import CustomUser  # Import your CustomUser model
-
-'''@login_required
-def user_management(request):
-    if not request.user.is_superuser:
-        messages.error(request, "Unauthorized access!")
-        return redirect('dashboard')
-
-    users = CustomUser.objects.filter(is_superuser=False, is_professional=False)  # Regular Users
-    professionals = CustomUser.objects.filter(is_professional=True)  # Approved Professionals
-    admins = CustomUser.objects.filter(is_superuser=True)  # Admins
-
-    return render(request, 'users/user_management.html', {
-        'users': users,
-        'professionals': professionals,
-        'admins': admins
-    })'''
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from .models import CustomUser, Professional1  # ✅ Import CustomUser
-
-@login_required
-#def delete_user(request, user_id):
- #   user = get_object_or_404(CustomUser, id=user_id)  # ✅ Get user by ID
-  #  if request.user.is_superuser:  # ✅ Allow only superusers to delete
-   #     user.delete()
-    #    messages.success(request, "User deleted successfully!")
-    #else:
-     #   messages.error(request, "You are not authorized to delete users.")
-    #return redirect('user_management')  # ✅ Redirect back to user list
-
-#def remove_professional_status(request, user_id):
- #   user = get_object_or_404(CustomUser, id=user_id)
-    
-  #  if hasattr(user, 'professionalprofile'):
-   #     user.professionalprofile.delete()  # Remove ProfessionalProfile
-    #    user.is_professional = False  # Reset the flag
-     #   user.save(update_fields=['is_professional'])
-      #  messages.success(request, f"{user.username} is no longer a professional.")
-    #else:
-     #   messages.error(request, "This user is not a professional.")
-    
-    #return redirect('user_management')
 
 @login_required
 def user_management(request):

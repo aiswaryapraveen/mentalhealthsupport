@@ -5,7 +5,6 @@
     <div class="container" md-4>
         <h2>Community Feed</h2>
     
-        <!-- Create Post Form -->
         <div class="card mt-3">
             <div class="card-body md-3">
                 <form method="post">
@@ -16,7 +15,6 @@
             </div>
         </div>
     
-        <!-- Loop through all posts -->
         {% for post in posts %}
             <div class="card mt-3">
                 <div class="card-body">
@@ -34,16 +32,12 @@
                         <div style="font-size: 0.85em; opacity: 0.7; margin-top: -4px;">Professional</div>
                     {% endif %}
                     <p>{{ post.content }}</p>
-                    <!-- Delete Post (Only for Post Owner) -->
-                    <!-- Reply and Delete Button Layout -->
                     <div class="d-flex justify-content-between align-items-center mt-2">
-                        <!-- Reply Button -->
                         <button type="button" class="btn btn-sm btn-outline-primary" onclick="toggleReplyForm('{{ post.id }}')">
                             <i class="fas fa-reply"></i> Reply
                         </button>
 
                         {% if request.user == post.user or request.user.is_superuser %}
-                            <!-- Delete Button -->
                             <form method="post" class="d-inline">
                                 {% csrf_token %}
                                 <input type="hidden" name="delete_post_id" value="{{ post.id }}">
@@ -53,7 +47,6 @@
                             </form>
                         {% endif %}
                         {% if request.user == reply.user %}
-                            <!-- Delete Button -->
                             <form method="post" class="d-inline">
                                 {% csrf_token %}
                                 <input type="hidden" name="delete_reply_id" value="{{ reply.id }}">
@@ -64,8 +57,6 @@
                         {% endif %}
 
                     </div>
-
-                    <!-- Reply Form (Initially Hidden) -->
                     <div id="reply-form-{{ post.id }}" class="mt-2" style="display: none;">
                         <form method="post" class="mb-2">
                             {% csrf_token %}
@@ -74,11 +65,6 @@
                             <button type="submit" class="btn btn-sm btn-primary mt-1">Post Reply</button>
                         </form>
                     </div>
-
-
-                    
-    
-                    <!-- Display Replies to the Post -->
                     {% for reply in replies %}
                         {% if reply.post == post and not reply.parent %}
                             {% include "community/reply_template.html" with reply=reply replies=replies %}
@@ -93,9 +79,9 @@
 function toggleReplyForm(replyId) {
     let replyForm = document.getElementById("reply-form-" + replyId);
     if (replyForm.style.display === "none") {
-        replyForm.style.display = "block";  // Show the reply form
+        replyForm.style.display = "block";
     } else {
-        replyForm.style.display = "none";   // Hide the reply form
+        replyForm.style.display = "none";
     }
 }
 </script>

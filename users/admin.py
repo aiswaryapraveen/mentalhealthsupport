@@ -1,28 +1,4 @@
 from django.contrib import admin
-
-# Register your models here.
-# from .models import ProfessionalProfile
-
-# @admin.register(ProfessionalProfile)
-# class ProfessionalProfileAdmin(admin.ModelAdmin):
-#     list_display = ('user', 'specialization', 'experience', 'is_approved')
-#     list_filter = ('is_approved', 'specialization')
-#     search_fields = ('user__username', 'qualification_details', 'specialization')
-#     readonly_fields = ('qualification_document',)  # Display uploaded file without allowing modification
-#     fieldsets = (
-#         ('User Information', {
-#             'fields': ('user', 'is_approved'),
-#         }),
-#         ('Professional Details', {
-#             'fields': ('specialization', 'experience', 'qualification_details', 'qualification_document'),
-#         }),
-#     )
-
-#     def has_add_permission(self, request):
-#         """Restrict adding new ProfessionalProfile instances from the admin panel."""
-#         return False  # Prevent manual creation in the admin panel
-
-from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser
 
@@ -46,3 +22,8 @@ class CustomUserAdmin(UserAdmin):
             'fields': ('username', 'email', 'password1', 'password2', 'first_name', 'last_name', 'age', 'dob', 'gender', 'is_professional'),
         }),
     )
+from core.models import Goal
+
+@admin.register(Goal)
+class GoalAdmin(admin.ModelAdmin):
+    list_display = ("text",)

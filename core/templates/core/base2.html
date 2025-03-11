@@ -87,6 +87,7 @@
             <a href="{% url 'dashboard' %}"><i class="fas fa-home"></i> Home</a>
             <a href="{% url 'user_management' %}"><i class="fas fa-users"></i> Manage Users</a>
             <a href="{% url 'request_view' %}"><i class="fas fa-tasks"></i> Requests Management</a>
+            <a href="{% url 'manage_goals' %}">Manage Goals</a>
         {% elif user.is_professional %}
             <a href="{% url 'dashboard' %}"><i class="fas fa-home"></i> Home</a>
             <a href="{% url 'dashboard' %}"><i class="fas fa-calendar-check"></i> Bookings</a>
@@ -96,6 +97,7 @@
         {% else %}
             <a href="{% url 'dashboard' %}"><i class="fas fa-book"></i> Journal</a>
             <a href="{% url 'community_feed' %}"><i class="fas fa-users"></i> Community</a>
+            <a href="{% url 'goals' %}"><i class="fas fa-bullseye"></i> Goals</a>
             <a href="https://senticbot.streamlit.app/"><i class="fas fa-users"></i> Chat with AI</a>
             <a href="{% url 'dashboard' %}"><i class="fas fa-gamepad"></i> Games</a>
             <a href="{% url 'dashboard' %}"><i class="fas fa-calendar-plus"></i> Book an Appointment</a>
