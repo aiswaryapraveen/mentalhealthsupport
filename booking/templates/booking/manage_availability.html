@@ -1,0 +1,57 @@
+{% extends "core/base2.html" %}
+{% block content %}
+<div style="max-width: 600px; margin: 20px auto; padding: 20px; background: #ffffff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+    <h2 style="text-align: center; color: #007bff; margin-bottom: 20px;">Manage Availability</h2>
+
+    {% if is_professional %}
+        <form method="POST" style="display: flex; flex-direction: column; gap: 15px;">
+            {% csrf_token %}
+            
+            <label for="id_date" style="font-weight: bold; color: #333;">Select Date:</label>
+            <input type="date" name="date" id="id_date" required
+                   style="padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 16px; background: #f9f9f9;">
+
+            <label for="id_start_time" style="font-weight: bold; color: #333;">Start Time:</label>
+            <input type="time" name="start_time" id="id_start_time" required
+                   style="padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 16px; background: #f9f9f9;">
+
+            <label for="id_end_time" style="font-weight: bold; color: #333;">End Time:</label>
+            <input type="time" name="end_time" id="id_end_time" required
+                   style="padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 16px; background: #f9f9f9;">
+            <label for="id_max_capacity" style="font-weight: bold; color: #333;">Max Bookings:</label>
+            <input type="number" name="max_capacity" id="id_max_capacity" min="1" required
+                    style="padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 16px; background: #f9f9f9;">
+            <button type="submit" style="background: #007bff; color: white; padding: 12px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
+                Add Availability
+            </button>
+        </form>
+
+        <h3 style="margin-top: 30px; color: #007bff;">Current Availability</h3>
+        <ul style="list-style: none; padding: 0;">
+            {% for availability in availabilities %}
+                <li style="background: #f8f9fa; padding: 10px; margin-top: 8px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 16px;">
+                        📅 {{ availability.date }} - ⏰ {{ availability.start_time }} to {{ availability.end_time }}  
+                        | 🎟️ Max Bookings: {{ availability.max_capacity }}
+                    </span>
+                    {% if not availability.is_booked %}
+                        <form action="{% url 'delete_availability' availability.id %}" method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" style="background: red; color: white; padding: 5px 10px; border: none; border-radius: 5px; font-size: 14px; cursor: pointer;">
+                                ❌ Delete
+                            </button>
+                        </form>
+                    {% else %}
+                        <span style="color: green; font-weight: bold;">(Booked)</span>
+                    {% endif %}
+                </li>
+            {% empty %}
+                <p style="color: #888; text-align: center;">No availability slots added yet.</p>
+            {% endfor %}
+        </ul>
+        
+    {% else %}
+        <p style="text-align: center; color: red;">{{ message }}</p>
+    {% endif %}
+</div>
+{% endblock %}

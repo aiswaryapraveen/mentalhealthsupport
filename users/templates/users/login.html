@@ -17,6 +17,9 @@
                 {% endfor %}    
         </div>
         {% endif %}
+        <div class="text-center mt-3">
+            <small>Don't have an account? <a href="{% url 'signup' %}">Sign Up</a></small>
+        </div>
 
         <form method="POST">
             {% csrf_token %}
@@ -32,10 +35,10 @@
             </div>
             <button type="submit" class="btn btn-primary w-100" style="background-color:black">Login</button>
         </form>
-
         <div class="text-center mt-3">
-            <small>Don't have an account? <a href="{% url 'signup' %}">Sign Up</a></small>
+            <small> <a href="{% url 'reset_password' %}">Forgot password?</a></small>
         </div>
+
     </div>
 </div>
 

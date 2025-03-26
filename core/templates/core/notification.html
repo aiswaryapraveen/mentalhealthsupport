@@ -1,0 +1,138 @@
+{% extends 'core/base2.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3 class="mb-3 text-center">Notifications</h3>
+
+    {% if unread_count > 0 %}
+        <div class="text-center mb-3">
+            <span class="badge bg-danger p-2">{{ unread_count }} Unread</span>
+        </div>
+    {% endif %}
+
+    <div class="notifications-container">
+        {% for notification in notifications %}
+            <div class="notification-card {% if not notification.is_read %} unread {% endif %}">
+                <div class="notification-content">
+                    {% autoescape off %}
+                        {{ notification.message }}
+                    {% endautoescape %}
+                    <div class="notification-time">{{ notification.created_at|date:"M d, Y H:i" }}</div>
+                </div>
+                
+                <div class="notification-actions">
+                    {% if not notification.is_read %}
+                        <a href="{% url 'mark_notification_as_read' notification.id %}" class="mark-read-btn">Mark as Read</a>
+                    {% endif %}
+
+                    <form action="{% url 'delete_notification' notification.id %}" method="POST" class="delete-form">
+                        {% csrf_token %}
+                        <button type="submit" class="delete-btn">Delete</button>
+                    </form>
+                </div>
+            </div>
+        {% empty %}
+            <div class="alert alert-info text-center">No notifications found.</div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    /* Notification Container */
+    .notifications-container {
+        max-width: 600px;
+        margin: auto;
+    }
+
+    /* Notification Card */
+    .notification-card {
+        background: #fff;
+        padding: 15px 18px;
+        border-radius: 8px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: transform 0.2s ease-in-out;
+    }
+
+    /* Unread Notification Styling */
+    .notification-card.unread {
+        background: #fef4e5;
+        border-left: 5px solid #ff9800;
+        font-weight: 600;
+    }
+
+    /* Hover Effect */
+    .notification-card:hover {
+        transform: scale(1.02);
+    }
+
+    /* Notification Content */
+    .notification-content {
+        flex-grow: 1;
+    }
+
+    /* Timestamp */
+    .notification-time {
+        font-size: 13px;
+        color: #888;
+        margin-top: 5px;
+    }
+
+    /* Actions Container */
+    .notification-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    /* Mark as Read Button */
+    .mark-read-btn {
+        font-size: 14px;
+        color: #007bff;
+        text-decoration: none;
+        padding: 6px 10px;
+        border: 1px solid #007bff;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+    }
+
+    .mark-read-btn:hover {
+        background: #007bff;
+        color: #fff;
+    }
+
+    /* Delete Button */
+    .delete-btn {
+        font-size: 14px;
+        color: #fff;
+        background: #dc3545;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .delete-btn:hover {
+        background: #c82333;
+    }
+
+    /* Prevent form button from shifting layout */
+    .delete-form {
+        margin: 0;
+    }
+
+    /* Make links inside notifications look like text */
+    .notification-content a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .notification-content a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+{% endblock %}

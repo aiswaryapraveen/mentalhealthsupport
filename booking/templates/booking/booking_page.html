@@ -1,0 +1,169 @@
+{% extends "core/base2.html" %}
+{% block content %}
+
+<h2 style="text-align: center; color: #333; margin-bottom: 20px;">Book a Professional</h2>
+
+<!-- Filter Form -->
+<form method="GET" style="text-align: center; margin-bottom: 20px;">
+    <input type="text" name="specialization" placeholder="Filter by specialization" 
+           value="{{ specialization_filter }}" 
+           style="padding: 10px; width: 250px; border: 1px solid #ccc; border-radius: 5px;">
+    <button type="submit" 
+            style="padding: 10px 15px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        Filter
+    </button>
+</form>
+
+<!-- Display Professionals -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; padding: 10px;">
+    {% for professional in professionals %}
+        <div style="border: 1px solid #ddd; padding: 20px; text-align: center; border-radius: 10px; 
+                    background: #f9f9f9; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); transition: 0.3s;">
+            <h3 style="color: #333; margin-bottom: 10px;">{{ professional.user.first_name }} {{ professional.user.last_name }}</h3>
+            <p><strong>Specialization:</strong> {{ professional.specialization }}</p>
+            <p><strong>Experience:</strong> {{ professional.experience }} years</p>
+
+            <!-- Available Slots -->
+            <h4 style="margin-top: 15px; color: #007bff;">Available Slots:</h4>
+{% with availability_list|dictsort:"date" as sorted_slots %}
+    {% if sorted_slots %}
+        <ul style="list-style: none; padding: 0;">
+            {% for slot in sorted_slots %}
+                {% if slot.professional.id == professional.id %}
+                    <li style="background: #e3f2fd; padding: 8px; border-radius: 5px; display: inline-block; margin: 5px;">
+                        {{ slot.date }} - {{ slot.start_time }} to {{ slot.end_time }}
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p style="color: red;">No available slots</p>
+    {% endif %}
+{% endwith %}
+
+            <!-- View Profile Button -->
+            <a href="{% url 'professional_profile' professional.id %}" 
+               style="display: inline-block; margin-top: 15px; padding: 10px 15px; 
+                      background: #007bff; color: white; text-decoration: none; 
+                      border-radius: 5px; transition: 0.3s;">
+                View Profile
+            </a>
+        </div>
+    {% empty %}
+        <p style="text-align: center; color: red;">No professionals found.</p>
+    {% endfor %}
+</div>
+    <div>
+        <div class="container mt-4">
+            <h2 class="text-primary">My Confirmed Bookings</h2>
+        
+            {% if bookings %}
+                <div class="row justify-content-center">
+                    {% for booking in bookings %}
+                    <div class="ticket">
+                        <div class="ticket-header">
+                            <h3>🎟 Appointment Pass</h3>
+                        </div>
+                        <div class="ticket-body">
+                            <p class="ticket-name">{{ booking.professional.user.first_name }} {{ booking.professional.user.last_name }}</p>
+                            <p class="ticket-specialization">{{ booking.professional.specialization }}</p>
+                            <div class="ticket-details">
+                                <p><strong>📅 Date:</strong> {{ booking.availability.date }}</p>
+                                <p><strong>⏰ Time:</strong> {{ booking.availability.start_time }} - {{ booking.availability.end_time }}</p>
+                            </div>
+                        </div>
+                        <div class="ticket-footer">
+                            <p>✅ Verified Booking</p>
+                            <p class="ticket-note">Arrive on time for a smooth session! 🚀</p>
+                        </div>
+                    </div>                    
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">You have no confirmed bookings yet.</p>
+            {% endif %}
+        </div>        
+    </div>
+    <style>
+    .ticket {
+        width: 400px;
+        background: linear-gradient(135deg, #ffffff, #f8f9fa);
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        text-align: center;
+        border: 1px solid #ddd;
+        position: relative;
+        margin: 20px auto;
+        overflow: hidden;
+    }
+    
+    /* Decorative cutouts for ticket effect */
+    .ticket::before, .ticket::after {
+        content: "";
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        background: white;
+        border-radius: 50%;
+        top: 50%;
+        transform: translateY(-50%);
+        box-shadow: 0 0 0 2px #ddd;
+    }
+    
+    .ticket::before {
+        left: -15px;
+    }
+    
+    .ticket::after {
+        right: -15px;
+    }
+    
+    .ticket-header {
+        background: #007bff;
+        color: white;
+        padding: 10px;
+        border-radius: 8px 8px 0 0;
+        font-weight: bold;
+    }
+    
+    .ticket-name {
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+        margin-top: 10px;
+    }
+    
+    .ticket-specialization {
+        font-size: 16px;
+        color: #555;
+        font-style: italic;
+    }
+    
+    .ticket-details {
+        margin-top: 10px;
+        font-size: 14px;
+    }
+    
+    .ticket-details p {
+        margin: 5px 0;
+    }
+    
+    .ticket-footer {
+        background: #f0f0f0;
+        padding: 8px;
+        border-radius: 0 0 8px 8px;
+        font-size: 14px;
+        color: #333;
+        font-weight: bold;
+    }
+    
+    .ticket-note {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+        font-style: italic;
+    }
+    </style>      
+    </div>
+{% endblock %}

@@ -15,6 +15,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from django.http import JsonResponse
+from core.models import Notification
 
 
 
@@ -268,6 +269,7 @@ def complete_personal_goal(request, goal_id):
     except PersonalGoal.DoesNotExist:
         print(f"Goal {goal_id} not found or doesn't belong to user {request.user}")  # Debugging
         return JsonResponse({"status": "error", "message": "Goal not found"}, status=404)
+
 from django.views.decorators.csrf import csrf_exempt
 @csrf_exempt  # TEMPORARY: Only use for debugging. Remove later!
 def delete_personal_goal(request, goal_id):
@@ -276,3 +278,26 @@ def delete_personal_goal(request, goal_id):
         goal.delete()
         return JsonResponse({"status": "success", "message": "Goal deleted successfully!"})
     return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
+
+@login_required
+def notifications_view(request):
+    notifications = Notification.objects.filter(user=request.user).order_by("-created_at")
+    unread_count = notifications.filter(is_read=False).count()  # Count unread notifications
+    return render(request, "core/notification.html", {
+        "notifications": notifications,
+        "unread_count": unread_count,
+    })
+
+from .models import Notification
+
+
+def mark_notification_as_read(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.is_read = True
+    notification.save()
+    return redirect("notifications")  # Redirect back to the notifications page
+@login_required
+def delete_notification(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.delete()
+    return redirect('notifications')  # Replace with your actual notifications URL name

@@ -1,0 +1,137 @@
+{% extends "core/base2.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Professional Profile Card -->
+    <div class="card p-4 mb-4 border-0 shadow-lg rounded bg-white text-center">
+        <div class="profile-image mx-auto mb-3">
+            <img src="https://alicrie.vercel.app/images/anime+pfp+luffy-8.jpg" alt="Profile Image" class="rounded-circle shadow-sm">
+        </div>
+        <h2 class="text-primary">{{ professional.user.first_name }} {{ professional.user.last_name }}</h2>
+        <p class="text-muted"><strong>Specialization:</strong> {{ professional.specialization }}</p>
+        <p class="text-muted"><strong>Experience:</strong> {{ professional.experience }} years</p>
+
+        <!-- Bio Section -->
+        {% if professional.bio %}
+            <p class="text-dark mt-3">{{ professional.bio }}</p>
+        {% else %}
+            <p class="text-muted">No bio available</p>
+        {% endif %}
+
+        <!-- Contact & Location -->
+        <div class="mt-3">
+            <p><i class="fas fa-map-marker-alt"></i> {{ professional.location|default:"Location not provided" }}</p>
+            <p><i class="fas fa-envelope"></i> {{ professional.user.email }}</p>
+        </div>
+
+        <!-- Ratings & Reviews -->
+        <div class="ratings mt-2">
+            <span class="text-warning">
+                ⭐⭐⭐⭐⭐ ({{ professional.rating|default:"No ratings yet" }} / 5.0)
+            </span>
+            <p class="text-muted">Based on {{ professional.review_count|default:"0" }} reviews</p>
+        </div>
+
+        <!-- Book Now Button -->
+        <a # class="btn btn-primary mt-3" href="{% url 'booking' professional.id %}">
+            Book an Appointment
+        </a>
+
+        <!-- Social Media Links (Optional) -->
+        {% if professional.linkedin or professional.twitter %}
+        <div class="social-links mt-3">
+            {% if professional.linkedin %}
+                <a href=# target="_blank" class="btn btn-outline-primary btn-sm">
+                    <i class="fab fa-linkedin"></i> LinkedIn
+                </a>
+            {% endif %}
+            {% if professional.twitter %}
+                <a href=# target="_blank" class="btn btn-outline-info btn-sm">
+                    <i class="fab fa-twitter"></i> Twitter
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Available Slots -->
+    <h4 class="text-dark mt-4">Available Slots:</h4>
+    {% with availability_list|dictsort:"date" as sorted_slots %}
+        {% if sorted_slots %}
+            <div class="slot-container">
+                {% for slot in sorted_slots %}
+                    {% if slot.professional.id == professional.id %}
+                        <div class="slot-card">
+                            <p class="date">{{ slot.date }}</p>
+                            <p class="time">{{ slot.start_time }} - {{ slot.end_time }}</p>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-muted">No available slots</p>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Back Button -->
+    <a href="{% url 'booking_page' %}" class="btn btn-secondary mt-3">
+        ← Back to Booking
+    </a>
+</div>
+
+<!-- Custom CSS -->
+<style>
+    .profile-image img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #007bff;
+    }
+
+    .slot-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 10px;
+    }
+
+    .slot-card {
+        background: white;
+        color: #333;
+        padding: 10px 15px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.05);
+        min-width: 140px;
+        text-align: center;
+        font-size: 14px;
+        transition: 0.3s ease;
+    }
+
+    .slot-card:hover {
+        background: #007bff;
+        color: white;
+        cursor: pointer;
+    }
+
+    .date {
+        font-weight: bold;
+        margin-bottom: 3px;
+    }
+
+    .time {
+        font-size: 13px;
+        color: #555;
+    }
+
+    .social-links .btn {
+        margin: 5px;
+    }
+
+    .ratings {
+        font-size: 16px;
+    }
+</style>
+
+{% endblock %}

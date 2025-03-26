@@ -1,8 +1,9 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from .views import signup_view, user_management, add_personal_goal, delete_user, remove_professional_status, professional_registration, add_goal, delete_goal,manage_goals
+from .views import signup_view, user_management, add_personal_goal, delete_user, remove_professional_status, professional_registration, add_goal, delete_goal,manage_goals, forgotpassword
 from django.conf import settings
 from django.conf.urls.static import static
+from .views import CustomPasswordResetView
 
 urlpatterns = [
     path('signup/', signup_view, name='signup'),
@@ -16,6 +17,12 @@ urlpatterns = [
     path("add-goal/", add_goal, name="add-goal"),
     path("delete-goal/<int:goal_id>/", delete_goal, name="delete_goal"),
     path('add-personal-goal/', add_personal_goal, name='add_personal_goal'),
+    path('forgotpass/', forgotpassword, name='forgotpass'),
+    path('reset_password/', CustomPasswordResetView.as_view(), name='reset_password'),
+    path('reset_password_sent/', auth_views.PasswordResetDoneView.as_view(template_name="users/password_reset_done.html"), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name="users/password_reset_confirm.html"), name='password_reset_confirm'),
+    path('reset_password_complete/', auth_views.PasswordResetCompleteView.as_view(template_name="users/password_reset_complete.html"), name='password_reset_complete'),
+
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

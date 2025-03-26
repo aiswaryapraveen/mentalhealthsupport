@@ -9,6 +9,9 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from core.models import Goal, PersonalGoal
 from .models import CustomUser, Professional1
+from django.contrib.auth.views import PasswordResetView
+from django.urls import reverse_lazy
+from django.contrib.messages.views import SuccessMessageMixin
 
 def is_admin(user):
     return user.is_staff
@@ -137,3 +140,15 @@ def remove_professional_status(request, user_id):
         return JsonResponse({'success': f"{user.username} is no longer a professional!"})
 
     return JsonResponse({'error': "This user is not a professional."}, status=400)
+
+
+def forgotpassword(request):
+
+    return render(request, 'users/forgotpassword.html')
+
+class CustomPasswordResetView(SuccessMessageMixin, PasswordResetView):
+    template_name = 'users/password_reset.html'
+    email_template_name = 'users/password_reset_email.html'
+    subject_template_name = 'users/password_reset_subject.txt'
+    success_url = reverse_lazy('password_reset_done')
+    success_message = "An email with password reset instructions has been sent to your email."
