@@ -2,15 +2,20 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h3 class="mb-3 text-center">Notifications</h3>
+    <h3 class="mb-3 text-center">🔔 Notifications</h3>
 
     {% if unread_count > 0 %}
         <div class="text-center mb-3">
-            <span class="badge bg-danger p-2">{{ unread_count }} Unread</span>
+            <span class="badge unread-badge">{{ unread_count }} Unread</span>
         </div>
     {% endif %}
 
     <div class="notifications-container">
+        <form action="{% url 'mark_all_notifications_as_read' %}" method="post" class="mark-all-form">
+            {% csrf_token %}
+            <button type="submit" class="btn-mark-all">✔ Mark All as Read</button>
+        </form>
+
         {% for notification in notifications %}
             <div class="notification-card {% if not notification.is_read %} unread {% endif %}">
                 <div class="notification-content">
@@ -19,15 +24,15 @@
                     {% endautoescape %}
                     <div class="notification-time">{{ notification.created_at|date:"M d, Y H:i" }}</div>
                 </div>
-                
+
                 <div class="notification-actions">
                     {% if not notification.is_read %}
-                        <a href="{% url 'mark_notification_as_read' notification.id %}" class="mark-read-btn">Mark as Read</a>
+                        <a href="{% url 'mark_notification_as_read' notification.id %}" class="mark-read-btn">✔ Mark Read</a>
                     {% endif %}
 
                     <form action="{% url 'delete_notification' notification.id %}" method="POST" class="delete-form">
                         {% csrf_token %}
-                        <button type="submit" class="delete-btn">Delete</button>
+                        <button type="submit" class="delete-btn">🗑 Delete</button>
                     </form>
                 </div>
             </div>
@@ -38,10 +43,50 @@
 </div>
 
 <style>
+    /* General Styling */
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Arial', sans-serif;
+    }
+
     /* Notification Container */
     .notifications-container {
         max-width: 600px;
         margin: auto;
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Unread Badge */
+    .unread-badge {
+        font-size: 14px;
+        background: #ff4d4d;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 5px;
+    }
+
+    /* Mark All Button */
+    .mark-all-form {
+        text-align: right;
+        margin-bottom: 12px;
+    }
+
+    .btn-mark-all {
+        background: #007bff;
+        color: white;
+        padding: 8px 14px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: 0.3s;
+    }
+
+    .btn-mark-all:hover {
+        background: #0056b3;
     }
 
     /* Notification Card */
@@ -49,18 +94,19 @@
         background: #fff;
         padding: 15px 18px;
         border-radius: 8px;
-        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
         margin-bottom: 12px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         transition: transform 0.2s ease-in-out;
+        border-left: 5px solid transparent;
     }
 
     /* Unread Notification Styling */
     .notification-card.unread {
-        background: #fef4e5;
-        border-left: 5px solid #ff9800;
+        background: #fff9e6;
+        border-left-color: #ff9800;
         font-weight: 600;
     }
 
@@ -90,23 +136,23 @@
     /* Mark as Read Button */
     .mark-read-btn {
         font-size: 14px;
-        color: #007bff;
+        color: #28a745;
         text-decoration: none;
         padding: 6px 10px;
-        border: 1px solid #007bff;
+        border: 1px solid #28a745;
         border-radius: 5px;
         transition: all 0.3s ease;
     }
 
     .mark-read-btn:hover {
-        background: #007bff;
-        color: #fff;
+        background: #28a745;
+        color: white;
     }
 
     /* Delete Button */
     .delete-btn {
         font-size: 14px;
-        color: #fff;
+        color: white;
         background: #dc3545;
         border: none;
         padding: 6px 10px;
@@ -132,6 +178,19 @@
 
     .notification-content a:hover {
         text-decoration: underline;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 600px) {
+        .notification-card {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .notification-actions {
+            margin-top: 10px;
+            justify-content: flex-start;
+        }
     }
 </style>
 

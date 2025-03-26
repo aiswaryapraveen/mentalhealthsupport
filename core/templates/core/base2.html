@@ -250,6 +250,7 @@
         </button>
         {% if user.is_superuser %}
             <a href="{% url 'dashboard' %}"><i class="bi bi-house-door"></i> Home</a>
+            <a href="{% url 'community_feed' %}"><i class="bi bi-people"></i> Community</a>
             <a href="{% url 'user_management' %}"><i class="bi bi-people"></i> Manage Users</a>
             <a href="{% url 'request_view' %}"><i class="bi bi-list-task"></i> Requests</a>
             <a href="{% url 'manage_goals' %}"><i class="bi bi-bullseye"></i> Manage Goals</a>

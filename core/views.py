@@ -301,3 +301,8 @@ def delete_notification(request, notification_id):
     notification = get_object_or_404(Notification, id=notification_id, user=request.user)
     notification.delete()
     return redirect('notifications')  # Replace with your actual notifications URL name
+@login_required
+def mark_all_notifications_as_read(request):
+    notifications = Notification.objects.filter(user=request.user, is_read=False)
+    notifications.update(is_read=True)  # ✅ Bulk update all unread notifications
+    return redirect("notifications")  # Redirect back to the notifications page

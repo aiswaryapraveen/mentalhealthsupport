@@ -70,7 +70,9 @@ def signup_view(request):
         form = SignupForm()
     return render(request, 'users/signup.html', {'form': form})
 
-
+from core.models import Notification
+from django.urls import reverse
+from django.utils.html import format_html
 @login_required
 def professional_registration(request):
     profile = None
@@ -86,6 +88,22 @@ def professional_registration(request):
             profile = form.save(commit=False)
             profile.user = request.user  # Assign user
             profile.save()
+
+            # ✅ Notify all admins with a link to the request management page
+            admin_users = CustomUser.objects.filter(is_superuser=True)
+            for admin in admin_users:
+                notification_link = reverse("request_view")  # ✅ Corrected reverse()
+                formatted_message = format_html(
+                    'New professional request from <strong>{}</strong>. <a href="{}" style="color: blue; text-decoration: underline;">Review Now</a>',
+                    request.user.username,
+                    notification_link
+                )
+
+                Notification.objects.create(
+                    user=admin,
+                    message=formatted_message,  # ✅ Store formatted HTML
+                    notification_type="message"
+                )
             messages.success(request, "Your request has been submitted for approval.")
             return redirect('mentor-reg')
 
