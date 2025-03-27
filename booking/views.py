@@ -9,8 +9,29 @@ from django.utils.html import format_html
 from django.urls import reverse
 from users.models import CustomUser
 
+from django.utils.timezone import now, timedelta
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Availability, Booking
+from core.models import Notification
+from .forms import AvailabilityForm
+
 @login_required
 def manage_availability(request):
+    # ✅ Remove past availabilities before processing anything else
+    current_time = now()
+    
+    # Delete past availability slots (including expired ones from today)
+    Availability.objects.filter(
+        date__lt=current_time.date()
+    ).delete()
+
+    Availability.objects.filter(
+        date=current_time.date(),
+        end_time__lte=current_time.time()
+    ).delete()
+
     # Check if the user is a professional
     if not request.user.is_professional:
         return render(request, 'booking/manage_availability.html', {
@@ -26,14 +47,14 @@ def manage_availability(request):
             'is_professional': False
         })
 
-    # Get availability slots for the professional
+    # Get availability slots for the professional (only upcoming ones)
     availabilities = Availability.objects.filter(professional=professional)  
 
     if request.method == "POST":
         form = AvailabilityForm(request.POST)
         if form.is_valid():
             availability = form.save(commit=False)
-            if availability.date < now().date():
+            if availability.date < current_time.date():
                 messages.error(request, "You cannot add availability for past dates.")
                 return redirect('manage_availability')
             availability.professional = professional
@@ -46,6 +67,40 @@ def manage_availability(request):
         'availabilities': availabilities,
         'is_professional': True
     })
+
+@login_required
+def delete_availability(request, availability_id):
+    availability = get_object_or_404(Availability, id=availability_id)
+
+    # Ensure only the professional who created the availability can delete it
+    if request.user != availability.professional.user:
+        return redirect('manage_availability')  # Redirect if unauthorized
+    # ✅ Get all users who booked this availability slot
+    booked_users = Booking.objects.filter(availability=availability).values_list('user', flat=True)
+
+    # ✅ Notify users BEFORE deleting the availability
+    notification_link = reverse("booking_page")  # Change to the actual booking page URL
+    for user_id in booked_users:
+        try:
+            user_obj = CustomUser.objects.get(id=user_id)
+            formatted_message = format_html(
+                'Your booking on <strong>{}</strong> at <strong>{}</strong> has been canceled by the professional. '
+                '<a href="{}" style="color: blue; text-decoration: underline;">Check Bookings</a>',
+                availability.date,
+                availability.start_time,
+                notification_link
+            )
+            Notification.objects.create(
+                user=user_obj,
+                message=formatted_message,
+                notification_type="message"
+            )
+        except CustomUser.DoesNotExist:
+            pass  # Skip if user does not exist
+
+    availability.delete()
+    return redirect('manage_availability')  # Redirect after deletion
+
 
 @login_required
 def delete_availability(request, availability_id):
