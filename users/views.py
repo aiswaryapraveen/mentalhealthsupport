@@ -139,6 +139,18 @@ def delete_user(request, user_id):
     user = get_object_or_404(CustomUser, id=user_id)
     user.delete()
     return JsonResponse({'success': "User deleted successfully!"})
+from booking.models import Booking, Availability
+from django.utils.timezone import now
+from django.urls import reverse
+from django.utils.html import format_html
+from core.models import Notification
+import logging
+
+from django.utils.html import format_html
+from django.urls import reverse
+import logging
+
+logger = logging.getLogger(__name__)  # Debugging logger
 
 @login_required
 def remove_professional_status(request, user_id):
@@ -147,7 +159,7 @@ def remove_professional_status(request, user_id):
 
     user = get_object_or_404(CustomUser, id=user_id)
 
-    if user.is_professional:  # Directly check the field instead of hasattr()
+    if user.is_professional:
         user.is_professional = False
         user.save(update_fields=['is_professional'])
 
@@ -155,7 +167,40 @@ def remove_professional_status(request, user_id):
         if professional_request:
             professional_request.is_approved = False
             professional_request.save(update_fields=['is_approved'])
-        return JsonResponse({'success': f"{user.username} is no longer a professional!"})
+
+            # ✅ Get all users who booked this professional
+            booked_users = Booking.objects.filter(professional=professional_request).values_list('user', flat=True)
+
+            logger.info(f"Found {len(booked_users)} users with bookings to notify.")
+            
+            # ✅ Notify users BEFORE deleting bookings
+            notification_link = reverse("booking_page")
+            for user_id in booked_users:
+                try:
+                    user_obj = CustomUser.objects.get(id=user_id)
+                    formatted_message = format_html(
+                        'Your booking with <strong>{}</strong> is no longer available. '
+                        '<a href="{}" style="color: blue; text-decoration: underline;">Check Bookings</a>',
+                        professional_request.user.username,
+                        notification_link
+                    )
+                    Notification.objects.create(
+                        user=user_obj,
+                        message=formatted_message,
+                        notification_type="warning"
+                    )
+                    logger.info(f"Notification sent to {user_obj.username} ({user_obj.id})")
+                except CustomUser.DoesNotExist:
+                    logger.error(f"User with ID {user_id} not found.")
+
+            # ✅ Proceed with deletion
+            deleted_availabilities, _ = Availability.objects.filter(professional=professional_request).delete()
+            deleted_bookings, _ = Booking.objects.filter(professional=professional_request).delete()
+
+            logger.info(f"Deleted {deleted_availabilities} availability slots.")
+            logger.info(f"Deleted {deleted_bookings} bookings.")
+
+            return JsonResponse({'success': f"{user.username} is no longer a professional, and their availability has been removed!"})
 
     return JsonResponse({'error': "This user is not a professional."}, status=400)
 

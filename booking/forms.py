@@ -1,6 +1,8 @@
 from django import forms
 from django.db import models
 from .models import Availability
+from django.core.exceptions import ValidationError
+from django.utils.timezone import now
 
 class AvailabilityForm(forms.ModelForm):
     class Meta:
@@ -12,6 +14,11 @@ class AvailabilityForm(forms.ModelForm):
             'end_time': forms.TimeInput(attrs={'type': 'time'}),
             'max_capacity': forms.NumberInput(attrs={'min': 1, 'max': 10}),  # Limit for safety
         }
+    def clean_date(self):
+        selected_date = self.cleaned_data['date']
+        if selected_date < now().date():
+            raise ValidationError("You cannot add availability for past dates.")
+        return selected_date
 
 
 class BookingForm(forms.Form):

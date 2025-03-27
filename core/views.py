@@ -17,8 +17,6 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from django.http import JsonResponse
 from core.models import Notification
 
-
-
 def landing_page(request):
     return render(request, 'core/landing.html')
 
@@ -27,7 +25,10 @@ def about_page(request):
 
 def goals_view(request):
     return render(request, 'core/goals.html')
-
+from core.models import Notification
+from django.urls import reverse
+from django.utils.html import format_html
+from booking.models import Booking, Availability
 @login_required
 def request_view(request):
     if not request.user.is_superuser:
@@ -64,7 +65,36 @@ def request_view(request):
                 profile.user.is_professional = False
                 profile.user.save()
                 profile.save()
-                messages.success(request, f"Professional profile for {profile.user.username} has been rejected.")
+
+                # ✅ Get all users who booked this professional
+                booked_users = Booking.objects.filter(professional=profile).values_list('user', flat=True)
+
+                # ✅ Notify users BEFORE deleting bookings
+                notification_link = reverse("booking_page")
+                for user_id in booked_users:
+                    try:
+                        user_obj = CustomUser.objects.get(id=user_id)
+                        formatted_message = format_html(
+                            'Your booking with <strong>{}</strong> is no longer available. '
+                            '<a href="{}" style="color: blue; text-decoration: underline;">Check Bookings</a>',
+                            profile.user.username,
+                            notification_link
+                        )
+                        Notification.objects.create(
+                            user=user_obj,
+                            message=formatted_message,
+                            notification_type="message"
+                        )
+                    except CustomUser.DoesNotExist:
+                        pass  # Skip if user does not exist
+
+                # ✅ Remove all availability slots
+                Availability.objects.filter(professional=profile).delete()
+                
+                # ✅ Remove all bookings for this professional
+                Booking.objects.filter(professional=profile).delete()
+
+                messages.success(request, f"Professional profile for {profile.user.username} has been rejected, and their availability has been removed.")
                 return redirect('request_view')
 
         return render(request, 'core/request.html', {'profiles': profiles})

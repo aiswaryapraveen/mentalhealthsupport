@@ -7,6 +7,7 @@ from django.contrib import messages
 from core.models import Notification
 from django.utils.html import format_html
 from django.urls import reverse
+from users.models import CustomUser
 
 @login_required
 def manage_availability(request):
@@ -32,6 +33,9 @@ def manage_availability(request):
         form = AvailabilityForm(request.POST)
         if form.is_valid():
             availability = form.save(commit=False)
+            if availability.date < now().date():
+                messages.error(request, "You cannot add availability for past dates.")
+                return redirect('manage_availability')
             availability.professional = professional
             availability.save()
             return redirect('manage_availability')
@@ -50,6 +54,28 @@ def delete_availability(request, availability_id):
     # Ensure only the professional who created the availability can delete it
     if request.user != availability.professional.user:
         return redirect('manage_availability')  # Redirect if unauthorized
+    # ✅ Get all users who booked this availability slot
+    booked_users = Booking.objects.filter(availability=availability).values_list('user', flat=True)
+
+    # ✅ Notify users BEFORE deleting the availability
+    notification_link = reverse("booking_page")  # Change to the actual booking page URL
+    for user_id in booked_users:
+        try:
+            user_obj = CustomUser.objects.get(id=user_id)
+            formatted_message = format_html(
+                'Your booking on <strong>{}</strong> at <strong>{}</strong> has been canceled by the professional. '
+                '<a href="{}" style="color: blue; text-decoration: underline;">Check Bookings</a>',
+                availability.date,
+                availability.start_time,
+                notification_link
+            )
+            Notification.objects.create(
+                user=user_obj,
+                message=formatted_message,
+                notification_type="message"
+            )
+        except CustomUser.DoesNotExist:
+            pass  # Skip if user does not exist
 
     availability.delete()
     return redirect('manage_availability')  # Redirect after deletion

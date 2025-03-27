@@ -15,7 +15,7 @@
         <h4 class="text-dark mt-3">Available Slots</h4>
 
         {% if form %}
-            <form method="POST" class="mt-3">
+            <form id="bookingForm" method="POST" class="mt-3">
                 {% csrf_token %}
                 
                 <!-- Date selection -->
@@ -89,5 +89,28 @@
         });
     });
 </script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const bookingForm = document.getElementById("bookingForm"); // Target the booking form
+
+        if (bookingForm) {
+            bookingForm.addEventListener("submit", function (event) {
+                event.preventDefault(); // Stop the form from submitting immediately
+
+                // Show confirmation pop-up
+                const userConfirmed = confirm("✅ Your appointment has been successfully booked! Click OK to proceed.");
+
+                if (userConfirmed) {
+                    setTimeout(() => {
+                        bookingForm.submit(); // Submit the form only if user clicks OK
+                    }, 100); // Small delay ensures the alert is seen first
+                }
+            });
+        }
+    });
+</script>
+
+
+
 
 {% endblock %}
