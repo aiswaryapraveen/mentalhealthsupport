@@ -105,7 +105,8 @@ def request_view(request):
                 return redirect('request_view')
 
         return render(request, 'core/request.html', {'profiles': profiles})
-
+from datetime import date
+from django.utils import timezone
 @login_required
 def goals_view(request):
 
@@ -117,13 +118,23 @@ def goals_view(request):
 
     if not request.user.is_superuser and not request.user.is_professional:
         assign_daily_goals(request.user)
+        today = timezone.now().date()
         user_goals = DailyGoal.objects.filter(user=request.user, date=date.today())
-        user_goals1 = PersonalGoal.objects.filter(user=request.user)
-
+        user_goals1 = PersonalGoal.objects.filter(user=request.user, date=today)
+        user_goals_previous = PersonalGoal.objects.filter(user=request.user).exclude(date=date.today())  
         total_personal_goals = user_goals1.count()
         completed_personal_goals = user_goals1.filter(completed = True).count()
 
-        completed_personal_goals_percentage = (completed_personal_goals / total_personal_goals) * 100 if total_personal_goals > 0 else 0
+        # Calculate completed personal goals percentage (only count goals completed today)
+        total_personal_goals_today = user_goals1.filter(date=today).count()  # Assuming 'created_at' is the field tracking goal creation
+        completed_personal_goals_today = user_goals1.filter(completed=True, date=today).count()
+
+        if total_personal_goals_today > 0:
+            completed_personal_goals_percentage = (completed_personal_goals_today / total_personal_goals_today) * 100
+        else:
+            completed_personal_goals_percentage = 0
+
+        # completed_personal_goals_percentage = (completed_personal_goals / total_personal_goals) * 100 if total_personal_goals > 0 else 0
 
         total_daily_goals = user_goals.count()
         completed_daily_goals = user_goals.filter(completed=True).count()
@@ -135,6 +146,7 @@ def goals_view(request):
     return render(request, "core/goals.html", {
         "user_goals": user_goals,
         "user_goals1": user_goals1,
+        "user_goals_previous": user_goals_previous,
         "completed_personal_goals_percentage": completed_personal_goals_percentage,
         "completed_daily_goals_percentage": completed_daily_goals_percentage,
         "combined_streak": combined_streak,

@@ -5,7 +5,7 @@
     <h2 class="mt-4">Welcome, {{ user.username }}!</h2>
     {% if not request.user.is_superuser and not request.user.is_professional %}
     <div class="container mt-5">
-        <h2 class="fw-bold text-center text-primary">📖 Daily Journal</h2>
+        <h2 class="fw-bold text-center text-dark">📖 Daily Journal</h2>
         <p class="text-muted text-center">Express yourself and track your mental well-being over time.</p>
 
         <!-- Journal Entry Form -->
@@ -15,7 +15,7 @@
                 <form method="POST" action="{% url 'analyze_journal' %}">
                     {% csrf_token %}
                     <textarea class="form-control shadow-sm rounded-4 p-3" name="journal_entry" rows="5" placeholder="How are you feeling today?" style="resize: none; background: #f8f9fa;"></textarea>
-                    <button type="submit" class="btn btn-primary mt-3 w-100 fw-bold rounded-pill">Analyze & Save</button>
+                    <button type="submit" class="btn btn-dark mt-3 w-100 fw-bold rounded-pill">Analyze & Save</button>
                 </form>
             </div>
         </div>
@@ -27,7 +27,7 @@
         <div class="journal-entries mt-3">
             {% for date, date_entries in entries.items %}
             <div class="date-group mb-3">
-                <button class="btn btn-outline-primary w-100 text-start fw-bold" data-bs-toggle="collapse" data-bs-target="#collapse-{{ date|date:'Ymd' }}">
+                <button class="btn btn-outline-dark w-100 text-start fw-bold" data-bs-toggle="collapse" data-bs-target="#collapse-{{ date|date:'Ymd' }}">
                     📅 {{ date }} <span class="float-end">▼</span>
                 </button>
                 

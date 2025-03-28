@@ -10,7 +10,7 @@
 
 <div style="max-width: 600px; margin: 20px auto; padding: 20px; background: #ffffff; 
             border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
-    <h2 style="text-align: center; color: #007bff; margin-bottom: 20px;">Manage Availability</h2>
+    <h2 style="text-align: center; color: #000000; margin-bottom: 20px;">Manage Availability</h2>
 
     {% if is_professional %}
     
@@ -46,14 +46,14 @@
                           border-radius: 5px; font-size: 16px; background: #f9f9f9;">
         </div>
 
-        <button type="submit" style="width: 100%; padding: 12px; background: #007bff; 
+        <button type="submit" style="width: 100%; padding: 12px; background: #000000; 
                                      color: white; border: none; border-radius: 5px; 
                                      font-size: 16px; cursor: pointer; transition: 0.3s;">
             ➕ Add Availability
         </button>
     </form>
 
-    <h3 style="margin-top: 30px; color: #007bff;">Current Availability</h3>
+    <h3 style="margin-top: 30px; color: #000000;">Current Availability</h3>
     <ul style="list-style: none; padding: 0;">
         {% for availability in availabilities %}
             <li style="background: #f8f9fa; padding: 15px; margin-top: 10px; 
@@ -72,7 +72,7 @@
                 {% else %}
                     <form action="{% url 'delete_availability' availability.id %}" method="POST" style="display:inline;">
                         {% csrf_token %}
-                        <button type="submit" class="delete-btn">Delete</button>
+                        <button type="submit" class="delete-btn btn-dark">Delete</button>
                     </form>
                 {% endif %}
             </li>
@@ -92,7 +92,7 @@
     }
 
     .delete-btn {
-        background: red; 
+        background: rgb(250, 85, 85); 
         color: white; 
         padding: 6px 12px; 
         border: none; 
@@ -103,7 +103,7 @@
     }
 
     .delete-btn:hover {
-        background: darkred;
+        background: rgb(100, 0, 0);
     }
 </style>
 

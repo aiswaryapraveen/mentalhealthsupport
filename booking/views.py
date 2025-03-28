@@ -222,7 +222,7 @@ def booking(request, professional_id):
 
             if existing_booking:
                 messages.error(request, "You can only book one session per day with this professional.")
-                return redirect(reverse("booking", args=[professional_id]))  # Redirect instead of rendering
+                return redirect(reverse("booking", args=[professional_id]))  # Redirect after error
             else:
                 # Create a Pending booking (approved only by the professional)
                 Booking.objects.create(
@@ -232,15 +232,16 @@ def booking(request, professional_id):
                     status="Pending"
                 )
                 Notification.objects.create(
-                user=professional.user,
-                message=format_html(
-                    '<a href="{}" style="color: #007bff; text-decoration: underline;">New booking request from {}.</a>',
-                    reverse("booking_view"),  # Redirect to booking management page
-                    request.user.first_name
-                ),
-                notification_type="appointment"
-            )
-                messages.success(request, "Booking request submitted! Waiting for approval.")
+                    user=professional.user,
+                    message=format_html(
+                        '<a href="{}" style="color: #007bff; text-decoration: underline;">New booking request from {}.</a>',
+                        reverse("booking_view"),  # Redirect to booking management page
+                        request.user.first_name
+                    ),
+                    notification_type="appointment"
+                )
+                # Success message
+                messages.success(request, "✅ Your appointment has been successfully booked! Waiting for approval.")
                 return redirect(reverse("booking", args=[professional_id]))  # Redirect after success
 
     for slot in available_slots:

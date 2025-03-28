@@ -7,7 +7,7 @@
         <div class="profile-image mx-auto mb-3">
             <img src="https://alicrie.vercel.app/images/anime+pfp+luffy-8.jpg" alt="Profile Image" class="rounded-circle shadow-sm">
         </div>
-        <h2 class="text-primary">{{ professional.user.first_name }} {{ professional.user.last_name }}</h2>
+        <h2 class="text-dark">{{ professional.user.first_name }} {{ professional.user.last_name }}</h2>
         <p class="text-muted"><strong>Specialization:</strong> {{ professional.specialization }}</p>
         <p class="text-muted"><strong>Experience:</strong> {{ professional.experience }} years</p>
 
@@ -33,7 +33,7 @@
         </div>
 
         <!-- Book Now Button -->
-        <a # class="btn btn-primary mt-3" href="{% url 'booking' professional.id %}">
+        <a class="btn btn-dark mt-3" href="{% url 'booking' professional.id %}">
             Book an Appointment
         </a>
 
@@ -41,12 +41,12 @@
         {% if professional.linkedin or professional.twitter %}
         <div class="social-links mt-3">
             {% if professional.linkedin %}
-                <a href=# target="_blank" class="btn btn-outline-primary btn-sm">
+                <a href="{{ professional.linkedin }}" target="_blank" class="btn btn-outline-dark btn-sm">
                     <i class="fab fa-linkedin"></i> LinkedIn
                 </a>
             {% endif %}
             {% if professional.twitter %}
-                <a href=# target="_blank" class="btn btn-outline-info btn-sm">
+                <a href="{{ professional.twitter }}" target="_blank" class="btn btn-outline-dark btn-sm">
                     <i class="fab fa-twitter"></i> Twitter
                 </a>
             {% endif %}
@@ -86,7 +86,17 @@
         height: 120px;
         border-radius: 50%;
         object-fit: cover;
-        border: 3px solid #007bff;
+        border: 3px solid #000;
+    }
+
+    .card {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        transition: 0.3s ease-in-out;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
     }
 
     .slot-container {
@@ -97,27 +107,28 @@
     }
 
     .slot-card {
-        background: white;
+        background: #ffffff;
         color: #333;
-        padding: 10px 15px;
-        border-radius: 8px;
+        padding: 15px 20px;
+        border-radius: 12px;
         border: 1px solid #ddd;
-        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.05);
-        min-width: 140px;
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.05);
+        min-width: 150px;
         text-align: center;
         font-size: 14px;
         transition: 0.3s ease;
+        cursor: pointer;
     }
 
     .slot-card:hover {
-        background: #007bff;
+        background: #000;
         color: white;
-        cursor: pointer;
     }
 
     .date {
         font-weight: bold;
-        margin-bottom: 3px;
+        margin-bottom: 6px;
+        font-size: 16px;
     }
 
     .time {
@@ -131,6 +142,41 @@
 
     .ratings {
         font-size: 16px;
+        font-weight: bold;
+    }
+
+    .ratings .text-warning {
+        font-size: 18px;
+    }
+
+    .btn-outline-dark {
+        border-color: #000;
+        color: #000;
+    }
+
+    .btn-outline-dark:hover {
+        background: #000;
+        color: white;
+    }
+
+    .btn-dark {
+        background-color: #000;
+        border-color: #000;
+    }
+
+    .btn-dark:hover {
+        background-color: #333;
+        border-color: #333;
+    }
+
+    .btn-secondary {
+        background-color: #333;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #444;
+        color: white;
     }
 </style>
 
