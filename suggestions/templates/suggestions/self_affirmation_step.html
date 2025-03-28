@@ -1,0 +1,58 @@
+{% extends 'core/base2.html' %}
+
+{% block content %}
+<div class="container mt-5" style="margin-top: 80px;">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <!-- Card with Integrated Progress Bar -->
+            <div class="card shadow-lg" style="border-radius: 12px; border: none; background-color: #fff; overflow: hidden;">
+                
+                <!-- Progress Bar (Static) -->
+                <div class="progress" style="height: 12px; background-color: #e0f7fa; border-radius: 0;">
+                    <div class="progress-bar"
+                         role="progressbar"
+                         style="width: {{ step_percent }}%; transition: width 0.8s ease-in-out; background: linear-gradient(90deg, #00bcd4, #0097a7); border-radius: 0;"
+                         aria-valuenow="{{ step_percent }}"
+                         aria-valuemin="0"
+                         aria-valuemax="100"></div>
+                </div>
+
+                <div class="card-body">
+                    {% if is_complete %}
+                        <!-- Completion Message -->
+                        <div class="text-center">
+                            <h2 class="text-success" style="font-size: 2.2em; font-weight: 700;">Well done! 🎉</h2>
+                            <div class="alert alert-info text-center py-3" style="font-size: 1.2em; background-color: #b2ebf2; border: none; font-weight: 500;">
+                                <em>{{ encouragement }}</em>
+                            </div>
+                            <p class="lead text-muted" style="font-size: 1.3em; margin-bottom: 30px;">{{ completion_message }}</p>
+                            <a href="{% url 'dashboard' %}" class="btn btn-success btn-lg shadow-sm" style="padding: 14px 35px; border-radius: 8px; background-color: #00796b; border-color: #00796b; font-size: 1.1em;">Go to Dashboard</a>
+                        </div>
+                    {% else %}
+                        <!-- Regular Question and Form (for step 1, 2, 3) -->
+                        <h4 class="card-title text-center" style="font-weight: 600; color: #00796b; font-size: 1.6em;">Self-Affirmation Reflection</h4>
+
+                        <!-- Question and Encouragement -->
+                        <p class="text-muted mb-4" style="font-size: 1.2em; color: #607d8b;"><strong>{{ question }}</strong></p>
+
+                        <!-- Reflection Form -->
+                        <form method="post" class="mt-4">
+                            {% csrf_token %}
+                            <div class="form-group mb-4">
+                                <textarea name="response" class="form-control" rows="6"
+                                          placeholder="Share your thoughts here..."
+                                          required style="border-radius: 12px; font-size: 1.2em; padding: 12px; box-shadow: 0px 4px 6px rgba(0,0,0,0.1); border: 1px solid #00796b;"></textarea>
+                            </div>
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg" style="padding: 12px 30px; border-radius: 12px; box-shadow: 0px 4px 6px rgba(0,0,0,0.1); background-color: #00796b; border-color: #00796b; font-size: 1.2em;">
+                                    {% if step == 3 %}Finish Reflection{% else %}Continue{% endif %}
+                                </button>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends 'core/base2.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+
+        <!-- Card for Self Reflection -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-lg card-custom" style="background-color: #f1f8e9;">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-custom-green">Self Reflection</h5>
+                    <p class="card-text">Start your journey to self-reflection and affirmation. Believe in yourself!</p>
+                    <a href="{% url 'self_affirmation_step' step=1 %}" class="btn btn-success btn-block btn-custom">Start Reflection</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card for Breathing Exercises -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-lg card-custom" style="background-color: #e3f2fd;">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-custom-blue">Breathing Exercises</h5>
+                    <p class="card-text">Practice deep breathing to reduce stress and enhance relaxation.</p>
+                    <a href="{% url 'breathing_exercises' %}" class="btn btn-primary btn-block btn-custom">Try Now</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card for Relaxation Games -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-lg card-custom" style="background-color: #fce4ec;">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-custom-pink">Relaxation Games</h5>
+                    <p class="card-text">Engage in fun games that help reduce stress and improve focus.</p>
+                    <a href="#" class="btn btn-danger btn-block btn-custom">Try Now</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card for Distraction Game -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-lg card-custom" style="background-color: #f8bbd0;">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-custom-dark">Distraction Game</h5>
+                    <p class="card-text">Distract yourself with a fun activity to refresh your mind.</p>
+                    <a href="#" class="btn btn-secondary btn-block btn-custom">Try Now</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card for Meditation -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-lg card-custom" style="background-color: #e8f5e9;">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-custom-green">Meditation</h5>
+                    <p class="card-text">Engage in mindfulness meditation to calm your mind and reduce anxiety.</p>
+                    <a href="#" class="btn btn-success btn-block btn-custom">Start Meditation</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card for Yoga -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-lg card-custom" style="background-color: #fff3e0;">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-custom-orange">Yoga</h5>
+                    <p class="card-text">Practice yoga poses to relax your body and improve your flexibility.</p>
+                    <a href="#" class="btn btn-warning btn-block btn-custom">Start Yoga</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card for Soundscape -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-lg card-custom" style="background-color: #f1f8e9;">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-custom-blue">Soundscape</h5>
+                    <p class="card-text">Listen to calming soundscapes to enhance your relaxation and mindfulness.</p>
+                    <a href="#" class="btn btn-info btn-block btn-custom">Listen Now</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<style>
+    /* Card customization */
+.card-custom {
+    border-radius: 20px;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: #ffffff;
+}
+
+.card-custom:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 18px rgba(0, 0, 0, 0.15);
+}
+
+/* Text customizations for titles */
+.text-custom-green {
+    color: #388e3c;
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+.text-custom-blue {
+    color: #0288d1;
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+.text-custom-pink {
+    color: #e91e63;
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+.text-custom-dark {
+    color: #9e3d5b;
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+.text-custom-orange {
+    color: #f57c00;
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+/* Button customization */
+.btn-custom {
+    border-radius: 12px;
+    font-weight: bold;
+    padding: 12px 24px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    font-size: 1.1rem;
+}
+
+.btn-custom:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+}
+
+/* Hover effects for buttons */
+.btn-success:hover {
+    background-color: #66bb6a;
+}
+
+.btn-primary:hover {
+    background-color: #0288d1;
+}
+
+.btn-danger:hover {
+    background-color: #c2185b;
+}
+
+.btn-warning:hover {
+    background-color: #fb8c00;
+}
+
+.btn-info:hover {
+    background-color: #039be5;
+}
+
+/* Spacing between cards */
+.col-md-4 {
+    padding: 0 15px;
+}
+
+/* Additional card styling for better layout */
+.card-body {
+    padding: 20px;
+}
+
+/* Centering the titles */
+.card-title {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+/* Text styling */
+.card-text {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+</style>
+{% endblock %}

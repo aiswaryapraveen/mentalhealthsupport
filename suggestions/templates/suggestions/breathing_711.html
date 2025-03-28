@@ -1,0 +1,181 @@
+{% extends 'core/base2.html' %}
+
+{% block content %}
+<div class="container-fluid d-flex align-items-center justify-content-center vh-100 flex-column">
+    <div id="instructions" class="instruction-text">Press Start</div>
+
+    <div class="breathing-card">
+        <!-- Main expanding and contracting circle -->
+        <div class="breathing-circle">
+            <!-- Small moving circle -->
+            <div class="moving-circle"></div>
+        </div>
+    </div>
+
+    <div class="buttons mt-3">
+        <button onclick="startBreathing()">Start</button>
+        <button onclick="stopBreathing()">Stop</button>
+    </div>
+
+    <a href="{% url 'breathing_exercises' %}" class="btn btn-secondary mt-3">← Back to Exercises</a>
+</div>
+
+<style>
+    .instruction-text {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 15px;
+        text-align: center;
+        transition: opacity 1s ease-in-out;
+    }
+
+    .breathing-card {
+        position: relative;
+        width: 700px;
+        height: 350px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(to top, #ffebcd, #ffffff);
+        border-radius: 20px;
+        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .breathing-circle {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: transparent;
+    border: 5px solid #000000;
+    box-shadow: 0px 0px 20px rgba(52, 47, 47, 0.7);
+    transition: transform 7s ease-in-out, box-shadow 7s ease-in-out, border-color 7s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.breathing-circle.glowing {
+    border-color: #1e90ff;
+    box-shadow: 0px 0px 40px rgba(30, 144, 255, 0.9);
+}
+    .moving-circle {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #000000;
+        box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.8);
+        animation: orbit 18s linear infinite;
+        animation-play-state: paused;
+    }
+
+    @keyframes orbit {
+        0% { transform: rotate(0deg) translateX(75px) rotate(0deg); }
+        100% { transform: rotate(360deg) translateX(75px) rotate(-360deg); }
+    }
+
+    .buttons {
+        margin-top: 10px;
+        display: flex;
+        gap: 15px;
+    }
+
+    button {
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 8px;
+        padding: 10px 20px;
+        background-color: #2c3e50;
+        color: white;
+        border: none;
+        transition: background 0.3s, transform 0.2s;
+    }
+
+    button:hover {
+        background-color: #1f2d3d;
+        transform: scale(1.03);
+    }
+
+    .btn-secondary {
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 8px;
+        padding: 10px 20px;
+        background-color: #2c3e50;
+        color: white;
+        border: none;
+        text-align: center;
+        display: inline-block;
+        transition: background 0.3s, transform 0.2s;
+    }
+
+    .btn-secondary:hover {
+        background-color: #1f2d3d;
+        transform: scale(1.03);
+    }
+</style>
+
+<script>
+let breathing;
+let inhaleTime = 7000; // 7 sec inhale
+let exhaleTime = 11000; // 11 sec exhale
+
+function startBreathing() {
+    stopBreathing();
+    document.querySelector(".moving-circle").style.animationPlayState = "running"; // Start moving
+    breatheCycle();
+    breathing = setInterval(breatheCycle, inhaleTime + exhaleTime);
+}
+
+function stopBreathing() {
+    clearInterval(breathing);
+    let circle = document.querySelector(".breathing-circle");
+    let movingCircle = document.querySelector(".moving-circle");
+
+    circle.style.transform = "scale(1)";
+    movingCircle.style.animationPlayState = "paused"; // Stop moving
+    document.querySelector("#instructions").innerText = "Press Start";
+}
+
+function breatheCycle() {
+    let instructions = document.getElementById("instructions");
+    let circle = document.querySelector(".breathing-circle");
+
+    let inhaleCountdown = 7;
+    instructions.innerText = `Inhale deeply for ${inhaleCountdown} seconds...`;
+    circle.classList.add("glowing");
+    circle.style.transform = "scale(2)";
+
+    // Countdown for inhale
+    let inhaleInterval = setInterval(() => {
+        inhaleCountdown--;
+        if (inhaleCountdown > 0) {
+            instructions.innerText = `Inhale deeply for ${inhaleCountdown} seconds...`;
+        } else {
+            clearInterval(inhaleInterval);
+        }
+    }, 1000);
+
+    setTimeout(() => {
+        let exhaleCountdown = 11;
+        instructions.innerText = `Exhale slowly for ${exhaleCountdown} seconds...`;
+        circle.classList.remove("glowing");
+        circle.style.transform = "scale(1)";
+
+        // Countdown for exhale
+        let exhaleInterval = setInterval(() => {
+            exhaleCountdown--;
+            if (exhaleCountdown > 0) {
+                instructions.innerText = `Exhale slowly for ${exhaleCountdown} seconds...`;
+            } else {
+                clearInterval(exhaleInterval);
+            }
+        }, 1000);
+
+    }, inhaleTime);
+}
+
+</script>
+
+{% endblock %}

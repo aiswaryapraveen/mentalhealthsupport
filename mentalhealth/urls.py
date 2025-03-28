@@ -7,6 +7,7 @@ urlpatterns = [
     path('', include('core.urls')),  # Landing, About, and Dashboard
     path('community/', include('community.urls')),
     path('booking/', include('booking.urls')),
+    path("suggestions/", include("suggestions.urls")),
 ]
 from django.conf import settings
 from django.conf.urls.static import static

@@ -1,0 +1,134 @@
+{% extends 'core/base2.html' %}
+
+{% block content %}
+<style>
+    /* Background */
+    body {
+        background-color: #f4f6f9;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .container-custom {
+        background: #ffffff;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+        margin-top: 50px;
+    }
+
+    /* Card Styling */
+    .card-custom {
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s, box-shadow 0.3s;
+        overflow: hidden;
+    }
+
+    .card-custom:hover {
+        transform: translateY(-5px);
+        box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .card-body {
+        padding: 25px;
+    }
+
+    .card-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #2c3e50;
+    }
+
+    .card-text {
+        font-size: 1rem;
+        color: #555;
+        line-height: 1.6;
+    }
+
+    .btn-custom {
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 8px;
+        padding: 10px 20px;
+        background-color: #2c3e50;
+        color: white;
+        transition: background 0.3s, transform 0.2s;
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+
+    .btn-custom:hover {
+        background-color: #1f2d3d;
+        transform: scale(1.03);
+    }
+</style>
+
+<div class="container">
+    <div class="container-custom text-center">
+        <h2 class="mb-4">🌿 Choose a Breathing Exercise</h2>
+        <p class="text-muted">Enhance your well-being through controlled breathing techniques.</p>
+
+        <div class="row justify-content-center mt-4">
+            <!-- Deep Breathing -->
+            <div class="col-md-5 mb-4">
+                <div class="card card-custom">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Deep Breathing</h5>
+                        <p class="card-text">
+                            A simple yet powerful technique to slow your heart rate and reduce stress. 
+                            Perfect for moments of anxiety or tension.
+                        </p>
+                        <a href="{% url 'breathing_circle' %}" class="btn btn-custom">Start</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Box Breathing -->
+            <div class="col-md-5 mb-4">
+                <div class="card card-custom">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Box Breathing</h5>
+                        <p class="card-text">
+                            A structured breathing pattern designed to enhance focus and emotional balance. 
+                            Used by athletes and professionals to improve control.
+                        </p>
+                        <a href="{% url 'box_breathing' %}" class="btn btn-custom">Start</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4-7-8 Breathing -->
+            <div class="col-md-5 mb-4">
+                <div class="card card-custom">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">4-7-8 Breathing</h5>
+                        <p class="card-text">
+                            A scientifically-backed technique that promotes deep relaxation and better sleep. 
+                            Ideal for unwinding after a long day.
+                        </p>
+                        <a href="{% url '478breathing' %}" class="btn btn-custom">Start</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7-11 Breathing -->
+            <div class="col-md-5 mb-4">
+                <div class="card card-custom">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">7-11 Breathing</h5>
+                        <p class="card-text">
+                            A method to control breathing and reduce anxiety by extending exhalation, 
+                            signaling your body to relax naturally.
+                        </p>
+                        <a href="{% url '711breathing' %}" class="btn btn-custom">Start</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

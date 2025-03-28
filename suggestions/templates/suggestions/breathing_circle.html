@@ -1,0 +1,169 @@
+{% extends 'core/base2.html' %}
+
+{% block content %}
+<div class="container d-flex flex-column align-items-center justify-content-center vh-100">
+    
+    <!-- Instructions -->
+    <h2 id="breath-text" class="text-center fw-bold">Click "Start" to begin</h2>
+    <p class="countdown text-muted" id="countdown-text"></p>
+
+    <!-- Breathing Card -->
+    <div class="breathing-card d-flex align-items-center justify-content-center">
+        <div class="circle" id="breath-circle"></div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls d-flex gap-3 mt-4 buttons">
+        <button id="start-btn" class="button">Start</button>
+        <button id="stop-btn" class="button">Stop</button>
+    </div>
+
+    <!-- Back Button -->
+    <a href="{% url 'breathing_exercises' %}" class="btn btn-secondary mt-4">← Back to Exercises</a>
+
+</div>
+
+<style>
+    /* Background */
+    body {
+        background: linear-gradient(to bottom, #f4f6f9, #e3edf7);
+        font-family: "Poppins", sans-serif;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+        color: #2c3e50;
+        transition: opacity 1s ease-in-out;
+    }
+
+    .countdown {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #555;
+    }
+
+    /* Breathing Card */
+    .breathing-card {
+        width: 600px;
+        height: 320px;
+        background: linear-gradient(to top, #ffffff, #f0f4f8);
+        border-radius: 16px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        transition: background 3s ease-in-out;
+    }
+
+    .circle {
+        width: 130px;
+        height: 130px;
+        background: radial-gradient(circle, #80DEEA, #4DD0E1);
+        border-radius: 50%;
+        transition: transform 4s ease-in-out;
+    }
+
+    .buttons {
+        margin-top: 10px;
+        display: flex;
+        gap: 15px;
+    }
+
+    button {
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 8px;
+        padding: 10px 20px;
+        background-color: #2c3e50; /* Matching the dark theme button */
+        color: white;
+        border: none;
+        transition: background 0.3s, transform 0.2s;
+    }
+
+    button:hover {
+        background-color: #1f2d3d;
+        transform: scale(1.03);
+    }
+
+    /* Back Button */
+    .btn-secondary {
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 8px;
+        padding: 10px 20px;
+        background-color: #2c3e50;
+        color: white;
+        border: none;
+        text-align: center;
+        display: inline-block;
+        transition: background 0.3s, transform 0.2s;
+    }
+
+    .btn-secondary:hover {
+        background-color: #1f2d3d;
+        transform: scale(1.03);
+    }
+</style>
+
+<script>
+    const textElement = document.getElementById("breath-text");
+    const countdownElement = document.getElementById("countdown-text");
+    const circleElement = document.getElementById("breath-circle");
+    const startButton = document.getElementById("start-btn");
+    const stopButton = document.getElementById("stop-btn");
+
+    const phases = [
+        { text: "Inhale...", scale: 1.6, hold: false },
+        { text: "Hold...", scale: 1.6, hold: true },
+        { text: "Exhale...", scale: 0.8, hold: false },
+        { text: "Hold...", scale: 0.8, hold: true }
+    ];
+
+    let phaseIndex = 0;
+    let breathingInterval;
+    let countdownInterval;
+
+    function startCountdown(seconds) {
+        let count = seconds;
+        countdownElement.innerText = count;
+        countdownInterval = setInterval(() => {
+            count--;
+            countdownElement.innerText = count > 0 ? count : "";
+            if (count <= 0) clearInterval(countdownInterval);
+        }, 1000);
+    }
+
+    function updateBreathing() {
+        const phase = phases[phaseIndex];
+
+        textElement.innerText = phase.text;
+        circleElement.style.transform = `scale(${phase.scale})`;
+
+        if (phase.hold) {
+            startCountdown(3);
+        } else {
+            countdownElement.innerText = "";
+        }
+
+        phaseIndex = (phaseIndex + 1) % phases.length;
+    }
+
+    startButton.addEventListener("click", () => {
+        if (!breathingInterval) {
+            phaseIndex = 0;
+            updateBreathing();
+            breathingInterval = setInterval(updateBreathing, 4000);
+        }
+    });
+
+    stopButton.addEventListener("click", () => {
+        clearInterval(breathingInterval);
+        clearInterval(countdownInterval);
+        breathingInterval = null;
+        countdownElement.innerText = "";
+        textElement.innerText = "Click 'Start' to begin";
+        circleElement.style.transform = "scale(1)";
+    });
+</script>
+{% endblock %}

@@ -17,6 +17,13 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from django.http import JsonResponse
 from core.models import Notification
 
+# In core/views.py
+from django.shortcuts import render
+
+def heal(request):
+    return render(request, 'core/heal.html')
+
+
 def landing_page(request):
     return render(request, 'core/landing.html')
 

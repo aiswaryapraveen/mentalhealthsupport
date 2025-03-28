@@ -15,4 +15,5 @@ urlpatterns = [
     path("notifications/read/<int:notification_id>/", views.mark_notification_as_read, name="mark_notification_as_read"),
     path('notifications/delete/<int:notification_id>/', views.delete_notification, name='delete_notification'),
     path("notifications/mark-all-read/", views.mark_all_notifications_as_read, name="mark_all_notifications_as_read"),
+    path('heal/', views.heal, name='heal'),
 ]

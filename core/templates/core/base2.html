@@ -268,6 +268,7 @@
             <a href="{% url 'dashboard' %}"><i class="bi bi-controller"></i> Games</a>
             <a href="{% url 'booking_page' %}"><i class="bi bi-calendar-plus"></i> Book an Appointment</a>
             <a href="{% url 'mentor-reg' %}"><i class="bi bi-person-badge"></i> Become a Doctor</a>
+            <a href="{% url 'heal' %}"><i class="bi bi-person-badge"></i>Self Heal</a>
         {% endif %}
         <form method="POST" action="{% url 'logout' %}" class="mt-3">
             {% csrf_token %}
