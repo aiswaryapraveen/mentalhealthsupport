@@ -209,15 +209,17 @@ def complete_meditation(request, meditation_id):
 # Helper function to check if user is admin
 def is_admin(user):
     return user.is_staff
-
+# Helper function to check if user is an admin or a professional
+def can_manage_meditations(user):
+    return user.is_staff or getattr(user, 'is_professional', False)  # Ensure 'is_professional' exists
 # Admin Panel to Manage Meditations
-@user_passes_test(is_admin)
+@user_passes_test(can_manage_meditations)
 def manage_meditations(request):
     meditations = Meditation.objects.all()
     return render(request, 'users/manage_meditations.html', {'meditations': meditations})
 
 # Add New Meditation
-@user_passes_test(is_admin)
+@user_passes_test(can_manage_meditations)
 def add_meditation(request):
     if request.method == 'POST':
         form = MeditationForm(request.POST, request.FILES)
@@ -230,7 +232,7 @@ def add_meditation(request):
     return render(request, 'users/add_edit_meditation.html', {'form': form, 'action': 'Add'})
 
 # Edit Meditation
-@user_passes_test(is_admin)
+@user_passes_test(can_manage_meditations)
 def edit_meditation(request, meditation_id):
     meditation = get_object_or_404(Meditation, id=meditation_id)
     if request.method == 'POST':
@@ -244,7 +246,7 @@ def edit_meditation(request, meditation_id):
     return render(request, 'users/add_edit_meditation.html', {'form': form, 'action': 'Edit'})
 
 # Delete Meditation
-@user_passes_test(is_admin)
+@user_passes_test(can_manage_meditations)
 def delete_meditation(request, meditation_id):
     meditation = get_object_or_404(Meditation, id=meditation_id)
     meditation.delete()
