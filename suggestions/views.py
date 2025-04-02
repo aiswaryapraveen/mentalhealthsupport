@@ -68,6 +68,8 @@ from django.shortcuts import render
 
 def breathing_exercises(request):
     return render(request, 'suggestions/breathing_exercises.html')
+def meditation(request):
+    return render(request, 'suggestions/meditation.html')
 def breathing_circle(request):
     return render(request, 'suggestions/breathing_circle.html')
 def breathing_478(request):
@@ -76,3 +78,92 @@ def breathing_711(request):
     return render(request, 'suggestions/breathing_711.html')
 def breathing_box(request):
     return render(request, 'suggestions/breathing_box.html')
+from django.shortcuts import render
+
+# Define the story as a list of scenes with choices
+STORY = {
+    1: {
+        'title': 'Waking Up in a Garden',
+        'description': 'You wake up in a peaceful garden. The sun is shining, and birds are singing. You\'re not sure how you got here, but it feels safe and serene.',
+        'choices': [
+            {'text': 'Explore the garden', 'next_scene': 2},
+            {'text': 'Sit by the pond and relax', 'next_scene': 3},
+        ]
+    },
+    2: {
+        'title': 'Exploring the Garden',
+        'description': 'As you walk through the garden, you find a beautiful flower that glows softly in the sunlight. There is a path that leads to a cozy gazebo.',
+        'choices': [
+            {'text': 'Pick the flower', 'next_scene': 4},
+            {'text': 'Walk to the gazebo', 'next_scene': 5},
+        ]
+    },
+    3: {
+        'title': 'Sitting by the Pond',
+        'description': 'You sit by the peaceful pond, feeling the soft breeze and hearing the gentle rustle of leaves. It feels like the world has slowed down.',
+        'choices': [
+            {'text': 'Close your eyes and meditate', 'next_scene': 6},
+            {'text': 'Look at the view and breathe deeply', 'next_scene': 7},
+        ]
+    },
+    4: {
+        'title': 'Picking the Flower',
+        'description': 'You pick the glowing flower, and its scent fills the air. You feel calm and relaxed as the peaceful energy washes over you.',
+        'choices': [
+            {'text': 'Sit and enjoy the view', 'next_scene': 8},
+            {'text': 'Continue walking to the gazebo', 'next_scene': 5},
+        ]
+    },
+    5: {
+        'title': 'Walking to the Gazebo',
+        'description': 'You walk to the gazebo, surrounded by soft cushions and a view of the serene garden. It feels like the perfect place to relax.',
+        'choices': [
+            {'text': 'Sit and relax', 'next_scene': 6},
+            {'text': 'Look at the view and breathe deeply', 'next_scene': 7},
+        ]
+    },
+    6: {
+        'title': 'Meditating in the Gazebo',
+        'description': 'You close your eyes, breathe deeply, and feel your body relax with each breath. The sounds around you are soothing, and you feel at peace.',
+        'choices': [
+            {'text': 'Sit and enjoy the tranquility', 'next_scene': 8},
+            {'text': 'Explore more of the garden', 'next_scene': 2},
+        ]
+    },
+    7: {
+        'title': 'Looking at the View',
+        'description': 'You sit and take in the breathtaking view of the garden. You breathe in the fresh air, feeling all your tension melt away.',
+        'choices': [
+            {'text': 'Sit and enjoy the view more', 'next_scene': 8},
+            {'text': 'Close your eyes and meditate', 'next_scene': 6},
+        ]
+    },
+    8: {
+        'title': 'Enjoying the Serenity',
+        'description': 'You sit quietly and enjoy the serenity of the garden. The peace and calm have settled deep within you, leaving you feeling relaxed and refreshed.',
+        'choices': [
+            {'text': 'Take a deep breath and feel the calmness', 'next_scene': 8},
+            {'text': 'Exit the garden and continue on with your day', 'next_scene': None},
+        ]
+    }
+}
+from django.shortcuts import render
+
+def game(request, scene_id):
+    # Retrieve the scene from STORY using scene_id
+    current_scene = STORY.get(scene_id)
+
+    # If the scene exists, render it normally
+    if current_scene:
+        choices = current_scene['choices']
+        return render(request, 'suggestions/distractiongame.html', {
+            'scene': current_scene,
+            'choices': choices
+        })
+    
+    # If the scene doesn't exist (which ideally shouldn't happen), fall back to the final peaceful scene
+    final_scene = STORY[8]  # Always render the peaceful final scene
+    return render(request, 'suggestions/distractiongame.html', {
+        'scene': final_scene,
+        'choices': final_scene['choices']
+    })
