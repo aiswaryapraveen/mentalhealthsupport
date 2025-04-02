@@ -1,0 +1,46 @@
+{% extends 'core/base2.html' %}
+{% block content %}
+
+<div class="container">
+    <h2 class="text-center my-4">🛠 Manage Meditations</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="text-end mb-3">
+        <a href="{% url 'add_meditation' %}" class="btn btn-success">➕ Add New Meditation</a>
+    </div>
+
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Duration</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for meditation in meditations %}
+            <tr>
+                <td>{{ meditation.title }}</td>
+                <td>{{ meditation.description|truncatewords:10 }}</td>
+                <td>{{ meditation.duration }} min</td>
+                <td>
+                    <a href="{% url 'edit_meditation' meditation.id %}" class="btn btn-warning btn-sm">✏ Edit</a>
+                    <a href="{% url 'delete_meditation' meditation.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">🗑 Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">No meditations available.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
