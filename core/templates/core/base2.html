@@ -222,10 +222,21 @@
                         <i class="bi bi-person-circle"></i> {{ user.username }}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end position-absolute">
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Profile</a></li>
+                        {% if not user.is_professional and not user.is_superuser %}
+                        <li>
+                            <a href="{% url 'user_profile' %}" class="dropdown-item">
+                                <i class="bi bi-person"></i> Profile
+                            </a>
+                        </li>
+                        {% else %}
+                        <li><a href=# class="dropdown-item">
+                            <i class="bi bi-person"></i> Profile
+                        </a> </li>
+                        {% endif %}
                         <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Settings</a></li>
-                        
+                    
                         <li><hr class="dropdown-divider"></li>
+                    
                         <li>
                             <form method="POST" action="{% url 'logout' %}">
                                 {% csrf_token %}
@@ -235,6 +246,7 @@
                             </form>
                         </li>
                     </ul>
+                    
                 </li>
 
                 <!-- Dark Mode Toggle -->
@@ -259,41 +271,45 @@
     </button>
 
     <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <button class="close-btn" onclick="closeSidebar()">
-            <i class="bi bi-x-lg"></i>
+<div class="sidebar" id="sidebar">
+    <button class="close-btn" onclick="closeSidebar()">
+        <i class="bi bi-x-lg"></i>
+    </button>
+
+    {% if user.is_superuser %}
+        <a href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a href="{% url 'community_feed' %}"><i class="bi bi-chat-dots"></i> Community</a>
+        <a href="{% url 'user_management' %}"><i class="bi bi-person-gear"></i> Manage Users</a>
+        <a href="{% url 'request_view' %}"><i class="bi bi-inbox"></i> Requests</a>
+        <a href="{% url 'manage_goals' %}"><i class="bi bi-bullseye"></i> Manage Goals</a>
+        <a href="{% url 'manage_meditations' %}"><i class="bi bi-yin-yang"></i> Manage Meditations</a>
+
+    {% elif user.is_professional %}
+        <a href="{% url 'dashboard' %}"><i class="bi bi-house-door"></i> Dashboard</a>
+        <a href="{% url 'manage_availability' %}"><i class="bi bi-calendar-range"></i> Availability</a>
+        <a href="{% url 'booking_view' %}"><i class="bi bi-calendar-check"></i> Bookings</a>
+        <a href="{% url 'community_feed' %}"><i class="bi bi-chat-heart"></i> Community</a>
+        <a href="{% url 'manage_meditations' %}"><i class="bi bi-yin-yang"></i> Meditations</a>
+
+    {% else %}
+        <a href="{% url 'dashboard' %}"><i class="bi bi-journal-text"></i> Journal</a>
+        <a href="{% url 'community_feed' %}"><i class="bi bi-chat-left-dots"></i> Community</a>
+        <a href="{% url 'goals' %}"><i class="bi bi-flag"></i> Goals</a>
+        <a href="https://senticbot.streamlit.app/"><i class="bi bi-robot"></i> Chat with AI</a>
+        <a href="{% url 'dashboard' %}"><i class="bi bi-joystick"></i> Games</a>
+        <a href="{% url 'booking_page' %}"><i class="bi bi-calendar-plus"></i> Book Appointment</a>
+        <a href="{% url 'mentor-reg' %}"><i class="bi bi-person-vcard"></i> Become a Doctor</a>
+        <a href="{% url 'heal' %}"><i class="bi bi-heart-pulse"></i> Self Heal</a>
+    {% endif %}
+
+    <form method="POST" action="{% url 'logout' %}" class="mt-3">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger w-100">
+            <i class="bi bi-box-arrow-right"></i> Logout
         </button>
-        {% if user.is_superuser %}
-            <a href="{% url 'dashboard' %}"><i class="bi bi-house-door"></i> Home</a>
-            <a href="{% url 'community_feed' %}"><i class="bi bi-people"></i> Community</a>
-            <a href="{% url 'user_management' %}"><i class="bi bi-people"></i> Manage Users</a>
-            <a href="{% url 'request_view' %}"><i class="bi bi-list-task"></i> Requests</a>
-            <a href="{% url 'manage_goals' %}"><i class="bi bi-bullseye"></i> Manage Goals</a>
-            <a href="{% url 'manage_meditations' %}"><i class="bi bi-bullseye"></i> Manage Meditations</a>
-        {% elif user.is_professional %}
-            <a href="{% url 'dashboard' %}"><i class="bi bi-house-door"></i> Home</a>
-            <a href="{% url 'manage_availability' %}"><i class="bi bi-clock"></i> Availability</a>
-            <a href="{% url 'booking_view' %}"><i class="bi bi-calendar-check"></i> Bookings</a>
-            <a href="{% url 'community_feed' %}"><i class="bi bi-people"></i> Community</a>
-            <a href="{% url 'manage_meditations' %}"><i class="bi bi-bullseye"></i> Meditations</a>
-            <a href="{% url 'mentor-reg' %}"><i class="bi bi-person-badge"></i> Profile</a>
-        {% else %}
-            <a href="{% url 'dashboard' %}"><i class="bi bi-journal"></i> Journal</a>
-            <a href="{% url 'community_feed' %}"><i class="bi bi-people"></i> Community</a>
-            <a href="{% url 'goals' %}"><i class="bi bi-bullseye"></i> Goals</a>
-            <a href="https://senticbot.streamlit.app/"><i class="bi bi-chat-dots"></i> Chat with AI</a>
-            <a href="{% url 'dashboard' %}"><i class="bi bi-controller"></i> Games</a>
-            <a href="{% url 'booking_page' %}"><i class="bi bi-calendar-plus"></i> Book an Appointment</a>
-            <a href="{% url 'mentor-reg' %}"><i class="bi bi-person-badge"></i> Become a Doctor</a>
-            <a href="{% url 'heal' %}"><i class="bi bi-person-badge"></i>Self Heal</a>
-        {% endif %}
-        <form method="POST" action="{% url 'logout' %}" class="mt-3">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger w-100">
-                <i class="bi bi-box-arrow-right"></i> Logout
-            </button>
-        </form>
-    </div>
+    </form>
+</div>
+
 
     <!-- Main Content -->
     <div class="content">

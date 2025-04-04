@@ -2,7 +2,6 @@
 
 {% block content %}
 <div class="container">
-    <h2 class="mt-4">Welcome, {{ user.username }}!</h2>
     {% if not request.user.is_superuser and not request.user.is_professional %}
     <div class="container mt-5">
         <h2 class="fw-bold text-center text-dark">📖 Daily Journal</h2>
@@ -18,7 +17,42 @@
                     <button type="submit" class="btn btn-dark mt-3 w-100 fw-bold rounded-pill">Analyze & Save</button>
                 </form>
             </div>
+        </div>{% if helpline_info %}
+        <div class="card border-danger mt-4 p-3 shadow-sm">
+            <h5 class="fw-bold text-danger">🚨 You're not alone — Help is available:</h5>
+            <p class="text-muted">If you're feeling overwhelmed or having suicidal thoughts, please reach out to these professional helplines:</p>
+            <div class="row">
+                {% for line in helpline_info %}
+                <div class="col-md-4 mb-3">
+                    <div class="border rounded p-3 h-100 bg-light">
+                        <h6 class="text-primary fw-bold">{{ line.name }}</h6>
+                        <p class="mb-1"><strong>📞 {{ line.number }}</strong></p>
+                        <p class="mb-1 text-muted">{{ line.availability }}</p>
+                        <small class="text-secondary">{{ line.description }}</small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
+        {% endif %}
+        {% if random_suggestions %}
+        <div class="mt-5"><div class="mt-4">
+            <h4 class="fw-bold text-dark">💡 Self-Healing Suggestions</h4>
+            <p class="text-muted">Try these activities to improve your mental well-being:</p>
+            <div class="row g-3">
+                {% for suggestion, url in random_suggestions %}
+                <div class="col-12 col-sm-6 col-md-4">
+                    <a href="{{ url }}" class="suggestion-card text-decoration-none d-block h-100">
+                        <div class="card-body text-center">
+                            <span class="suggestion-text">{{ suggestion }}</span>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
 
 
         <!-- Journal Entries -->
@@ -124,7 +158,32 @@
             .text-primary {
                 font-weight: bold;
             }
-        </style>
+            .suggestion-card {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    height: 100%;
+}
+
+.suggestion-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    background-color: #eafaf1;
+    border-color: #c7eed8;
+}
+
+.suggestion-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+            </style>
+            
     {% endif %}
 
 

@@ -1,0 +1,27 @@
+{% extends 'core/base2.html' %}
+
+{% block content %}
+<div class="container mt-5" style="margin-top: 80px;">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg text-center" style="border-radius: 12px; background-color: #ffffff; padding: 30px 20px;">
+
+                <h2 class="text-success mb-3" style="font-weight: 700; font-size: 2.3em;">You Did It! 🎉</h2>
+
+                <div class="alert alert-info mb-4" style="background-color: #b2ebf2; border: none; font-size: 1.2em; font-weight: 500;">
+                    <em>You’ve completed your self-affirmation reflection for today.</em>
+                </div>
+
+                <p class="lead text-muted mb-4" style="font-size: 1.2em;">
+                    Your thoughts matter. Keep growing, keep healing, and keep believing in yourself. 🌿
+                </p>
+
+                <a href="{% url 'dashboard' %}" class="btn btn-success btn-lg" style="padding: 12px 30px; border-radius: 10px; background-color: #00796b; border-color: #00796b; font-size: 1.1em;">
+                    Back to Dashboard
+                </a>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

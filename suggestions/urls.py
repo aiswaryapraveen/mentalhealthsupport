@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import manage_meditations, add_meditation, edit_meditation, delete_meditation, self_affirmation_step,game, breathing_exercises, breathing_circle, breathing_478, breathing_711, breathing_box, meditation, meditation_list, complete_meditation
+from .views import manage_meditations,self_affirmation_complete, add_meditation, edit_meditation, delete_meditation, self_affirmation_step,game, breathing_exercises, breathing_circle, breathing_478, breathing_711, breathing_box, meditation, meditation_list, complete_meditation
 
 urlpatterns = [
     path("self-affirmation/<int:step>/", self_affirmation_step, name="self_affirmation_step"),
@@ -16,4 +16,5 @@ urlpatterns = [
     path('meditations/add/', add_meditation, name='add_meditation'),
     path('meditations/edit/<int:meditation_id>/', edit_meditation, name='edit_meditation'),
     path('meditations/delete/<int:meditation_id>/', delete_meditation, name='delete_meditation'),
+    path('self-affirmation/complete/', self_affirmation_complete, name='self_affirmation_complete'),
 ]

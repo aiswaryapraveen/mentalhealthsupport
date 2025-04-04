@@ -215,3 +215,48 @@ class CustomPasswordResetView(SuccessMessageMixin, PasswordResetView):
     subject_template_name = 'users/password_reset_subject.txt'
     success_url = reverse_lazy('password_reset_done')
     success_message = "An email with password reset instructions has been sent to your email."
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from core.models import JournalEntry , DailyGoal, PersonalGoal # Import models to get goal and journal data
+from datetime import timedelta
+from suggestions.models import SelfAffirmation, UserMeditation
+from django.utils.timezone import now
+
+@login_required
+def profile_view(request):
+    user = request.user
+
+    # Goal completion and streak
+    daily_goals = DailyGoal.objects.filter(user=user, completed=True)
+    completed_goals_count = daily_goals.count()
+    personal_goals = PersonalGoal.objects.filter(user=user, completed=True)
+    total_goals_count = personal_goals.count()
+    goaltotal = completed_goals_count + total_goals_count
+
+    # Streak logic
+    streak = 0
+    last_completed_date = None
+    for daily_goal in daily_goals.order_by('-date'):
+        if last_completed_date is None or daily_goal.date == last_completed_date - timedelta(days=1):
+            streak += 1
+            last_completed_date = daily_goal.date
+        else:
+            break
+
+    # Fetch all affirmations (each with 3 fields already)
+    affirmations = SelfAffirmation.objects.filter(user=user).order_by('-date')
+
+    # Fetch completed meditations
+    completed_meditations = UserMeditation.objects.filter(user=user)
+
+    return render(request, 'users/profile.html', {
+        'user': user,
+        'completed_goals_count': completed_goals_count,
+        'goaltotal': goaltotal,
+        'streak': streak,
+        'affirmations': affirmations,
+        'completed_meditations': completed_meditations,
+    })
+
+
+

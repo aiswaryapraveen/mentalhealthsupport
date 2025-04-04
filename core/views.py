@@ -220,9 +220,9 @@ def calculate_combined_streak(user):
 
 
 # Load ML model and preprocessing tools
-MODEL_PATH = os.path.join(settings.BASE_DIR, "core/ml_models/mental_health_model.h5")
-TOKENIZER_PATH = os.path.join(settings.BASE_DIR, "core/ml_models/tokenizer.pkl")
-ENCODER_PATH = os.path.join(settings.BASE_DIR, "core/ml_models/label_encoder.pkl")
+MODEL_PATH = os.path.join(settings.BASE_DIR, "core/ml_models/mental_health_model_ref.h5")
+TOKENIZER_PATH = os.path.join(settings.BASE_DIR, "core/ml_models/tokenizer_ref.pkl")
+ENCODER_PATH = os.path.join(settings.BASE_DIR, "core/ml_models/label_encoder_ref.pkl")
 
 model = tf.keras.models.load_model(MODEL_PATH)
 
@@ -247,18 +247,163 @@ def predict_mental_health(text):
     prediction = model.predict(padded)
     label = encoder.inverse_transform([np.argmax(prediction)])
     return label[0]
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-# Function to analyze sentiment
+analyzer = SentimentIntensityAnalyzer()
+
 def analyze_sentiment(text):
-    blob = TextBlob(text)
-    sentiment = blob.sentiment.polarity
-    if sentiment > 0:
+    lowered = text.lower()
+
+    # Masked emotional cues (neutral-sounding but emotionally loaded)
+    masked_emotion_phrases = {
+        "everything is fine": "overwhelmed",
+        "just fine": "overwhelmed",
+        "smiling on the outside": "depressed",
+        "i’m okay": "overwhelmed",
+        "been better but also worse": "calm",
+    }
+    for phrase, label in masked_emotion_phrases.items():
+        if phrase in lowered:
+            return label
+
+    # Critical keywords
+    suicidal_keywords = ['disappear', 'worthless', 'can’t take it', 'no reason to go on', 'want to die', 'give up', 'end it all','better off without me']
+    depressed_keywords = ['empty', 'no energy', 'don’t care', 'lost interest', 'tired of everything', 'breaking inside']
+    anxiety_keywords = ['panic', 'nervous', 'heart racing', 'uneasy', 'what if', 'can’t breathe']
+    stress_keywords = ['pressured', 'deadline', 'too much', 'stressed', 'burnt out']
+
+    # Keyword-based overrides
+    if any(word in lowered for word in suicidal_keywords):
+        return 'suicidal'
+    elif any(word in lowered for word in depressed_keywords):
+        return 'depressed'
+    elif any(word in lowered for word in anxiety_keywords):
+        return 'anxiety'
+    elif any(word in lowered for word in stress_keywords):
+        return 'stress'
+
+    # VADER sentiment analysis fallback
+    scores = analyzer.polarity_scores(text)
+    compound = scores['compound']
+
+    if compound >= 0.7:
         return 'happy'
-    elif sentiment < 0:
+    elif compound >= 0.4:
+        return 'hopeful'
+    elif compound >= 0.1:
+        return 'calm'
+    elif compound > -0.4:
         return 'overwhelmed'
     else:
-        return 'relaxed'
+        return 'depressed'
 
+# Sample suggestions with labels and URLs
+# SUGGESTIONS_POOL = {
+#     'Breathing Exercise': '/suggestions/breathing-exercises/',
+#     'Try Meditation': '/suggestions/meditation/',
+#     'Workout': '/dashboard/',
+#     'Write Self-Affirmations': '/suggestions/self-affirmation/1/',
+#     'Do Yoga': '/dashboard/',
+#     'Distraction Game': '/suggestions/game/1/',
+#     'Talk to Someone': '/community/',
+#     'Book a Session': '/booking/',
+# }
+SUGGESTIONS_BY_STATUS = {
+    "suicidal": {
+        "suggestions": [
+            ("Talk to Someone", "/community/"),
+            ("Book a Session", "/booking/"),
+            ("Write Self-Affirmations", "/suggestions/self-affirmation/1/"),
+            ("Try Guided Meditation", "/suggestions/meditation/")
+        ],
+        "helplines": [
+            {
+                "name": "iCall",
+                "number": "9152987821",
+                "description": "Confidential emotional support.",
+                "availability": "Mon–Sat, 10am–8pm"
+            },
+            {
+                "name": "AASRA",
+                "number": "91-9820466726",
+                "description": "24/7 suicide prevention helpline.",
+                "availability": "24/7"
+            },
+            {
+                "name": "Samaritans Mumbai",
+                "number": "91-8422984528",
+                "description": "Safe space for emotional distress or suicidal thoughts.",
+                "availability": "5pm to 9pm, all days"
+            }
+        ]
+    },
+
+    "depressed": {
+        "suggestions": [
+            ("Listen to Uplifting Meditation", "/suggestions/meditation/"),
+            ("Write Self-Affirmations", "/suggestions/self-affirmation/1/"),
+            ("Play a Light Game", "/suggestions/game/1/"),
+            ("Try Gentle Breathing", "/suggestions/breathing-exercises/")
+        ]
+    },
+
+    "anxiety": {
+        "suggestions": [
+            ("Do Deep Breathing", "/suggestions/breathing-exercises/"),
+            ("Try Grounding Meditation", "/suggestions/meditation/"),
+            ("Stretch or Do Yoga", "/dashboard/"),
+            ("Vent Anonymously", "/community/")
+        ]
+    },
+
+    "stress": {
+        "suggestions": [
+            ("Try Breathing Exercise", "/suggestions/breathing-exercises/"),
+            ("Play a Stress-Relief Game", "/suggestions/game/1/"),
+            ("Take a Meditation Break", "/suggestions/meditation/"),
+            ("Talk to the Community", "/community/")
+        ]
+    },
+
+    "overwhelmed": {
+        "suggestions": [
+            ("Breathe Through the Moment", "/suggestions/breathing-exercises/"),
+            ("Guided Meditation for Overwhelm", "/suggestions/meditation/"),
+            ("Affirm Your Efforts", "/suggestions/self-affirmation/1/"),
+            ("Reach Out to Someone", "/community/")
+        ]
+    },
+
+    "calm": {
+        "suggestions": [
+            ("Set a New Personal Goal", "/goals/"),
+            ("Maintain Your Calm with Meditation", "/suggestions/meditation/"),
+            ("Do Light Yoga", "/dashboard/"),
+            ("Encourage Others", "/community/")
+        ]
+    },
+
+    "hopeful": {
+        "suggestions": [
+            ("Work Toward a Goal", "/goals/"),
+            ("Inspire Others", "/community/"),
+            ("Reflect with Affirmations", "/suggestions/self-affirmation/1/"),
+            ("Channel Your Hope with Meditation", "/suggestions/meditation/")
+        ]
+    },
+
+    "happy": {
+        "suggestions": [
+            ("Celebrate a Goal", "/goals/"),
+            ("Motivate Someone", "/community/"),
+            ("Reflect on Positivity", "/suggestions/self-affirmation/1/"),
+            ("Share Joy", "/community/")
+        ]
+    }
+}
+
+
+import random
 # View to save and analyze journal entry
 @login_required
 def analyze_journal_entry(request):
@@ -279,13 +424,17 @@ def analyze_journal_entry(request):
             grouped_entries = defaultdict(list)
             for entry in entries:
                 grouped_entries[entry.created_at.date()].append(entry)
+            status_key = sentiment.lower() if prediction.lower() == "normal" else prediction.lower()
+            suggestion_set = SUGGESTIONS_BY_STATUS.get(status_key, {})
+            suggestions = suggestion_set.get("suggestions", [])
+            random_suggestions = random.sample(suggestions, min(4, len(suggestions))) if suggestions else []
 
-            # Render the dashboard with the updated journal entries
+            helpline_info = suggestion_set.get("helplines", []) if status_key == "suicidal" else []
             return render(request, "core/dashboard.html", {
                 "entries": dict(grouped_entries),
+                "random_suggestions": random_suggestions,
+                "helpline_info": helpline_info,
             })
-
-
     return redirect("dashboard")  # Redirect back to dashboard
 
 def assign_daily_goals(user):
