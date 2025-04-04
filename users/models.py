@@ -30,7 +30,7 @@ class Professional1(models.Model):
     qualification_document = models.FileField(upload_to='document/', blank=True, null=True)
     experience = models.IntegerField(default=0)  # Years of experience
     specialization = models.CharField(max_length=255, blank=True, null=True)
-    is_approved = models.BooleanField(default=False)  # Admin-controlled
+    is_approved = models.BooleanField(null=True, blank=True)  # Admin-controlled
 
     def __str__(self):
         return f"{self.user.username} - {'Approved' if self.is_approved else 'Pending Approval'}"

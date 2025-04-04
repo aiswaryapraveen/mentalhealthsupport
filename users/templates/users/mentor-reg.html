@@ -47,6 +47,13 @@
                     </div>
                 </div>
             </div>
+            <form method="POST" action="{% url 'switch_to_normal_user' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger rounded-pill mt-3">
+                    <i class="fas fa-user-slash"></i> Switch to Normal User
+                </button>
+            </form>
+            
         </div>
         {% elif existing_application %}
         <h2 class="text-center text-primary mb-4">Professional Registration</h2>
@@ -81,9 +88,25 @@
                         <li class="list-group-item">
                             <i class="fas fa-hourglass-half text-warning"></i>
                             <strong>Status:</strong>
-                            <span class="badge bg-warning text-dark">Pending Approval</span>
+                            {% if existing_application.is_approved == False %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% elif existing_application.is_approved == True %}
+                                <span class="badge bg-success">Approved</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Pending Approval</span>
+                            {% endif %}
                         </li>
+                        
                     </ul>
+                    {% if existing_application.is_approved == False %}
+    <form method="POST" action="{% url 'reapply_professional' %}" class="mt-4">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-primary rounded-pill">
+            <i class="fas fa-redo"></i> Reapply
+        </button>
+    </form>
+{% endif %}
+
                 </div>
 
                 <div class="mt-4">
@@ -93,6 +116,12 @@
                 </div>
             </div>
         {% else %}
+        {% if max_reached %}
+        <div class="alert alert-warning">
+            <strong>Notice:</strong> We have reached our professional limit (10). New applications are temporarily closed.
+        </div>
+        {% else %}
+
         <h2 class="text-center text-primary mb-4">Professional Registration</h2>
             <!-- Registration Form -->
             <div class="card shadow p-4 rounded-3">
@@ -108,6 +137,7 @@
                 </form>
             </div>
         {% endif %}
+    {% endif %}
     </div>
 </div>
 {% endblock %}

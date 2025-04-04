@@ -12,6 +12,20 @@ from .models import CustomUser, Professional1
 from django.contrib.auth.views import PasswordResetView
 from django.urls import reverse_lazy
 from django.contrib.messages.views import SuccessMessageMixin
+from django.views.decorators.http import require_POST
+
+@login_required
+@require_POST
+def reapply_professional(request):
+    try:
+        profile = request.user.professional1
+        profile.is_approved = None  # back to pending
+        profile.save()
+        messages.success(request, "Your application is now resubmitted for approval.")
+    except Professional1.DoesNotExist:
+        messages.error(request, "No application found.")
+    return redirect('mentor-reg')  # or wherever you need
+
 
 def is_admin(user):
     return user.is_staff
@@ -73,46 +87,57 @@ def signup_view(request):
 from core.models import Notification
 from django.urls import reverse
 from django.utils.html import format_html
+MAX_PROFESSIONALS = 10  # You can move this to settings.py if needed
 @login_required
 def professional_registration(request):
     profile = None
-    existing_application = Professional1.objects.filter(user=request.user).first()  # Check if user already applied
+    existing_application = Professional1.objects.filter(user=request.user).first()
+    approved_count = Professional1.objects.filter(is_approved=True).count()
+
+    if approved_count >= MAX_PROFESSIONALS and not existing_application:
+        return render(request, 'users/mentor-reg.html', {
+            'form': None,
+            'existing_application': None,
+            'max_reached': True
+        })
+    
+ # Or show a page explaining why
 
     if request.method == 'POST':
-        if existing_application:  # Prevent duplicate applications
+        if existing_application:
             messages.error(request, "You already have a pending application.")
             return redirect('professional_registration')
 
         form = ProfessionalRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             profile = form.save(commit=False)
-            profile.user = request.user  # Assign user
+            profile.user = request.user
             profile.save()
 
-            # ✅ Notify all admins with a link to the request management page
             admin_users = CustomUser.objects.filter(is_superuser=True)
             for admin in admin_users:
-                notification_link = reverse("request_view")  # ✅ Corrected reverse()
+                notification_link = reverse("request_view")
                 formatted_message = format_html(
-                    'New professional request from <strong>{}</strong>. <a href="{}" style="color: blue; text-decoration: underline;">Review Now</a>',
+                    'New professional request from <strong>{}</strong>. '
+                    '<a href="{}" style="color: blue; text-decoration: underline;">Review Now</a>',
                     request.user.username,
                     notification_link
                 )
-
                 Notification.objects.create(
                     user=admin,
-                    message=formatted_message,  # ✅ Store formatted HTML
+                    message=formatted_message,
                     notification_type="message"
                 )
+
             messages.success(request, "Your request has been submitted for approval.")
             return redirect('mentor-reg')
-
     else:
         form = ProfessionalRegistrationForm()
 
     return render(request, 'users/mentor-reg.html', {
         'form': form,
-        'existing_application': existing_application
+        'existing_application': existing_application,
+        'max_reached': approved_count >= MAX_PROFESSIONALS
     })
 
 @login_required
@@ -258,5 +283,37 @@ def profile_view(request):
         'completed_meditations': completed_meditations,
     })
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
+from django.contrib import messages
 
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.shortcuts import redirect
+from users.models import Professional1  # or wherever the model is
+from django.db import transaction
 
+@login_required
+def switch_to_normal_user(request):
+    if request.method == 'POST' and request.user.is_professional:
+        try:
+            with transaction.atomic():
+                # Update user type
+                request.user.is_professional = False
+                request.user.save(update_fields=['is_professional'])
+
+                # Delete professional profile (and its document)
+                professional_profile = Professional1.objects.get(user=request.user)
+
+                if professional_profile.qualification_document:
+                    professional_profile.qualification_document.delete(save=False)
+
+                professional_profile.delete()
+
+                messages.success(request, "You have successfully switched to a normal user. Professional data has been removed.")
+        except Professional1.DoesNotExist:
+            messages.warning(request, "You did not have a professional profile to remove.")
+    else:
+        messages.error(request, "Invalid request.")
+
+    return redirect('dashboard')  # or 'profile', as needed
