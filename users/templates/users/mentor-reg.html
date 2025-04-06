@@ -12,48 +12,81 @@
         {% endif %}
 
         {% if user.is_professional %}
-        <h2 class="text-center text-primary mb-4">Professional Identity</h2>
-        <div class="card shadow-lg border-0 p-4 rounded-3">
+        <h2 class="text-center text-primary mb-4">Your Professional Identity</h2>
+        <div class="card shadow-lg border-0 p-4 rounded-4">
+            <div class="text-end mt-4">
+                <a href="{% url 'update_professional_profile' %}" class="btn btn-outline-primary rounded-pill">
+                    <i class="fas fa-edit me-1"></i> Edit Professional Profile
+                </a>
+            </div>  
             <div class="row align-items-center">
-                <!-- Profile Picture Placeholder (Subtle and Minimal) -->
-                <div class="col-md-3 text-center">
-                    <div class="rounded-circle bg-light d-flex justify-content-center align-items-center shadow-sm" 
-                        style="width: 90px; height: 90px;">
+                <!-- Profile Icon -->
+                <div class="col-md-3 text-center mb-3 mb-md-0">
+                    {% if profile_details and profile_details.profile_picture %}
+                    <img src="{{ profile_details.profile_picture.url }}" 
+                         alt="Profile Picture"
+                         class="rounded-circle shadow" 
+                         style="width: 100px; height: 100px; object-fit: cover;">
+                {% else %}
+                    <div class="rounded-circle bg-light d-flex justify-content-center align-items-center shadow" 
+                         style="width: 100px; height: 100px;">
                         <i class="fas fa-user-md fa-3x text-muted"></i>
                     </div>
+                {% endif %}
+                
                 </div>
-
+        
                 <!-- Professional Details -->
-                <div class="col-md-9">
-                    <div class="card-body">
-                        <h4 class="text-dark mb-3">
-                            <i class="fas fa-id-badge text-primary"></i> {{ user.first_name }} {{ user.last_name }}
-                        </h4>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p class="mb-2"><i class="fas fa-birthday-cake text-warning"></i> <strong>Age:</strong> {{ user.age }} years</p>
-                                <p class="mb-2"><i class="fas fa-user-md text-success"></i> <strong>Specialization:</strong> {{ user.professional1.specialization }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p class="mb-2"><i class="fas fa-graduation-cap text-info"></i> <strong>Qualification:</strong> {{ user.professional1.qualification }}</p>
-                                <p class="mb-2"><i class="fas fa-briefcase text-secondary"></i> <strong>Experience:</strong> {{ user.professional1.experience }} years</p>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <span class="badge bg-success px-3 py-2 rounded-pill">
-                                <i class="fas fa-check-circle"></i> Verified Professional
-                            </span>
-                        </div>
-                    </div>
-                </div>
+                <!-- Professional Details -->
+<div class="col-md-9">
+    <div class="card-body">
+        <h4 class="text-dark fw-bold mb-3">
+            <i class="fas fa-id-badge text-primary me-2"></i>{{ user.first_name }} {{ user.last_name }}
+        </h4>
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-2"><i class="fas fa-birthday-cake text-warning me-2"></i><strong>Age:</strong> {{ user.age }} years</p>
+                <p class="mb-2"><i class="fas fa-user-md text-success me-2"></i><strong>Specialization:</strong> {{ user.professional1.specialization }}</p>
+                <p class="mb-2"><i class="fas fa-map-marker-alt text-danger me-2"></i><strong>Location:</strong> {{ profile_details.location }}</p>
             </div>
-            <form method="POST" action="{% url 'switch_to_normal_user' %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-danger rounded-pill mt-3">
-                    <i class="fas fa-user-slash"></i> Switch to Normal User
-                </button>
-            </form>
-            
+            <div class="col-md-6">
+                <p class="mb-2"><i class="fas fa-graduation-cap text-info me-2"></i><strong>Qualification:</strong> {{ user.professional1.qualification_details }}</p>
+                <p class="mb-2"><i class="fas fa-briefcase text-secondary me-2"></i><strong>Experience:</strong> {{ user.professional1.experience }} years</p>
+                <p class="mb-2"><i class="fas fa-phone-alt text-success me-2"></i><strong>Phone:</strong> {{ profile_details.phone }}</p>
+            </div>
+        </div>
+        {% if profile_details.website %}
+        <p class="mb-2 mt-3">
+            <i class="fas fa-globe text-primary me-2"></i><strong>Website:</strong>
+            <a href="{{ profile_details.website }}" target="_blank">{{ profile_details.website }}</a>
+        </p>
+        {% endif %}
+        {% if profile_details.bio %}
+        <div class="mt-3">
+            <h5><i class="fas fa-info-circle text-secondary me-2"></i>Bio:</h5>
+            <p class="text-muted">{{ profile_details.bio }}</p>
+        </div>
+        {% endif %}
+        <div class="mt-3">
+            <span class="badge bg-success fs-6 px-3 py-2 rounded-pill shadow-sm">
+                <i class="fas fa-check-circle me-1"></i> Verified Professional
+            </span>
+        </div>
+    </div>
+</div>
+
+            </div>
+        
+            <hr class="my-4">
+        
+            <div class="text-end">              
+                <form method="POST" action="{% url 'switch_to_normal_user' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger rounded-pill">
+                        <i class="fas fa-user-slash me-1"></i> Switch to Normal User
+                    </button>
+                </form>
+            </div>
         </div>
         {% elif existing_application %}
         <h2 class="text-center text-primary mb-4">Professional Registration</h2>

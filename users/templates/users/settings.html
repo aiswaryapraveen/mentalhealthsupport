@@ -1,0 +1,108 @@
+{% extends 'core/base2.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .form-value { display: block; padding: 8px 12px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; }
+    .form-input { display: none; }
+    .edit-mode .form-input { display: block; }
+    .edit-mode .form-value { display: none; }
+    .edit-buttons { display: none; }
+    .edit-mode .edit-buttons { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
+</style>
+
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Account Settings</h2>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- USER SECTION -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Basic Information</h5>
+                <button type="button" class="btn btn-outline-primary btn-sm toggle-edit">Edit</button>
+            </div>
+            <div class="card-body form-section view-mode">
+                {% for field in user_form %}
+                <div class="mb-3">
+                    <label class="form-label">{{ field.label }}</label>
+                    <p class="form-value">{{ field.value|default:"—" }}</p>
+                    <div class="form-input">{{ field }}</div>
+                </div>
+                {% endfor %}
+                <div class="edit-buttons">
+                    <button type="submit" class="btn btn-primary px-4">Save</button>
+                    <button type="button" class="btn btn-secondary cancel-edit">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFESSIONAL SECTION -->
+        {% if is_professional %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Professional Details</h5>
+                <button type="button" class="btn btn-outline-primary btn-sm toggle-edit">Edit</button>
+            </div>
+            <div class="card-body form-section view-mode">
+                {% for field in professional_form %}
+                <div class="mb-3">
+                    <label class="form-label">{{ field.label }}</label>
+                    <p class="form-value">{{ field.value|default:"—" }}</p>
+                    <div class="form-input">{{ field }}</div>
+                </div>
+                {% endfor %}
+                <div class="edit-buttons">
+                    <button type="submit" class="btn btn-primary px-4">Save</button>
+                    <button type="button" class="btn btn-secondary cancel-edit">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Additional Profile Info</h5>
+                <button type="button" class="btn btn-outline-primary btn-sm toggle-edit">Edit</button>
+            </div>
+            <div class="card-body form-section view-mode">
+                {% for field in details_form %}
+                <div class="mb-3">
+                    <label class="form-label">{{ field.label }}</label>
+                    <p class="form-value">
+                        {% if field.name == 'profile_picture' and field.value %}
+                            <img src="{{ field.value.url }}" alt="Profile Picture" width="100">
+                        {% else %}
+                            {{ field.value|default:"—" }}
+                        {% endif %}
+                    </p>
+                    <div class="form-input">{{ field }}</div>
+                </div>
+                {% endfor %}
+                <div class="edit-buttons">
+                    <button type="submit" class="btn btn-primary px-4">Save</button>
+                    <button type="button" class="btn btn-secondary cancel-edit">Cancel</button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+<script>
+    document.querySelectorAll('.toggle-edit').forEach((btn, index) => {
+        const section = document.querySelectorAll('.form-section')[index];
+        const cancelBtn = section.querySelector('.cancel-edit');
+
+        btn.addEventListener('click', () => {
+            section.classList.add('edit-mode');
+            section.classList.remove('view-mode');
+        });
+
+        cancelBtn?.addEventListener('click', () => {
+            section.classList.remove('edit-mode');
+            section.classList.add('view-mode');
+        });
+    });
+</script>
+{% endblock %}

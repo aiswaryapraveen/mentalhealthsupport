@@ -1,69 +1,88 @@
 {% extends "core/base2.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Professional Profile Card -->
-    <div class="card p-4 mb-4 border-0 shadow-lg rounded bg-white text-center">
-        <div class="profile-image mx-auto mb-3">
-            <img src="https://alicrie.vercel.app/images/anime+pfp+luffy-8.jpg" alt="Profile Image" class="rounded-circle shadow-sm">
-        </div>
-        <h2 class="text-dark">{{ professional.user.first_name }} {{ professional.user.last_name }}</h2>
-        <p class="text-muted"><strong>Specialization:</strong> {{ professional.specialization }}</p>
-        <p class="text-muted"><strong>Experience:</strong> {{ professional.experience }} years</p>
+<div class="container my-5">
 
-        <!-- Bio Section -->
-        {% if professional.bio %}
-            <p class="text-dark mt-3">{{ professional.bio }}</p>
-        {% else %}
-            <p class="text-muted">No bio available</p>
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold">Meet Your Professional</h1>
+        <p class="lead text-muted">Connect, learn, and grow with expert support.</p>
+    </div>
+
+    <!-- Profile Card -->
+    <div class="card profile-card p-4 shadow-lg border-0 rounded-4 mb-5">
+        <div class="text-center">
+            <div class="profile-image mb-3">
+                <img src="{% if professional.details.profile_picture %}{{ professional.details.profile_picture.url }}{% else %}https://alicrie.vercel.app/images/anime+pfp+luffy-8.jpg{% endif %}" 
+                     alt="Profile Picture" class="rounded-circle">
+            </div>
+            
+            <h2 class="fw-semibold">{{ professional.user.first_name }} {{ professional.user.last_name }}</h2>
+            <p class="text-muted">{{ professional.specialization }} • {{ professional.experience }} yrs experience</p>
+            <p class="mt-3">
+                {{ professional.details.bio|default:"No bio available." }}
+            </p>
+        </div>
+
+        <hr>
+
+        <!-- Contact Info -->
+        <div class="row text-center mt-3">
+            <div class="col-md-4">
+                <i class="fas fa-map-marker-alt"></i><br>
+                {{ professional.details.location|default:"Location not provided" }}
+            </div>
+            <div class="col-md-4">
+                <i class="fas fa-envelope"></i><br>
+                {{ professional.user.email }}
+            </div>
+            <div class="col-md-4">
+                <i class="fas fa-phone"></i><br>
+                {{ professional.details.phone|default:"Not provided" }}
+            </div>
+        </div>
+
+        <!-- Website & Social -->
+        {% if professional.details.website %}
+        <div class="text-center mt-3">
+            <i class="fas fa-globe"></i>
+            <a href="{{ professional.details.website }}" target="_blank">{{ professional.details.website }}</a>
+        </div>
         {% endif %}
 
-        <!-- Contact & Location -->
-        <div class="mt-3">
-            <p><i class="fas fa-map-marker-alt"></i> {{ professional.location|default:"Location not provided" }}</p>
-            <p><i class="fas fa-envelope"></i> {{ professional.user.email }}</p>
-        </div>
-
-        <!-- Ratings & Reviews -->
-        <div class="ratings mt-2">
-            <span class="text-warning">
-                ⭐⭐⭐⭐⭐ ({{ professional.rating|default:"No ratings yet" }} / 5.0)
-            </span>
-            <p class="text-muted">Based on {{ professional.review_count|default:"0" }} reviews</p>
-        </div>
-
-        <!-- Book Now Button -->
-        <a class="btn btn-dark mt-3" href="{% url 'booking' professional.id %}">
-            Book an Appointment
-        </a>
-
-        <!-- Social Media Links (Optional) -->
         {% if professional.linkedin or professional.twitter %}
-        <div class="social-links mt-3">
+        <div class="text-center mt-3">
             {% if professional.linkedin %}
-                <a href="{{ professional.linkedin }}" target="_blank" class="btn btn-outline-dark btn-sm">
-                    <i class="fab fa-linkedin"></i> LinkedIn
-                </a>
+                <a href="{{ professional.linkedin }}" target="_blank" class="btn btn-outline-dark btn-sm mx-1"><i class="fab fa-linkedin"></i></a>
             {% endif %}
             {% if professional.twitter %}
-                <a href="{{ professional.twitter }}" target="_blank" class="btn btn-outline-dark btn-sm">
-                    <i class="fab fa-twitter"></i> Twitter
-                </a>
+                <a href="{{ professional.twitter }}" target="_blank" class="btn btn-outline-dark btn-sm mx-1"><i class="fab fa-twitter"></i></a>
             {% endif %}
         </div>
         {% endif %}
+
+        <!-- Ratings -->
+        <div class="text-center mt-4">
+            {% if rating_avg %}
+                <p class="fs-5 text-dark mb-0">Average Rating: <strong>{{ rating_avg|floatformat:"1" }}/5.0</strong></p>
+                <p class="text-muted small">Based on {{ review_count }} review{{ review_count|pluralize }}</p>
+            {% else %}
+                <p class="text-muted">No ratings yet</p>
+            {% endif %}
+            <a class="btn btn-dark mt-2" href="{% url 'booking' professional.id %}">Book an Appointment</a>
+        </div>
     </div>
 
     <!-- Available Slots -->
-    <h4 class="text-dark mt-4">Available Slots:</h4>
+    <h4 class="mb-3">Available Slots</h4>
     {% with availability_list|dictsort:"date" as sorted_slots %}
         {% if sorted_slots %}
-            <div class="slot-container">
+            <div class="d-flex flex-wrap gap-3">
                 {% for slot in sorted_slots %}
                     {% if slot.professional.id == professional.id %}
                         <div class="slot-card">
-                            <p class="date">{{ slot.date }}</p>
-                            <p class="time">{{ slot.start_time }} - {{ slot.end_time }}</p>
+                            <p class="mb-1 fw-bold">{{ slot.date }}</p>
+                            <p class="mb-0 text-muted">{{ slot.start_time }} - {{ slot.end_time }}</p>
                         </div>
                     {% endif %}
                 {% endfor %}
@@ -72,112 +91,164 @@
             <p class="text-muted">No available slots</p>
         {% endif %}
     {% endwith %}
+    <a href="{% url 'booking_page' %}" class="btn btn-secondary mt-4">← Back to Booking</a>
 
-    <!-- Back Button -->
-    <a href="{% url 'booking_page' %}" class="btn btn-secondary mt-3">
-        ← Back to Booking
-    </a>
+<!-- Reviews -->
+<div class="mt-5">
+    <h4 class="mb-4">Reviews & Feedback</h4>
+    {% if reviews %}
+        {% for review in reviews %}
+            <div class="bg-light rounded p-3 mb-3 shadow-sm border-start border-4 border-dark review-entry {% if forloop.counter > 3 %}d-none extra-review{% endif %}">
+                <div class="d-flex justify-content-between">
+                    <strong>{{ review.user.first_name }}</strong>
+                    <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                </div>
+                <div class="text-warning mb-1">
+                    {% for _ in "12345"|make_list %}
+                        {% if forloop.counter0 < review.rating %}
+                            ⭐
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <p class="mb-0">{{ review.comment }}</p>
+                {% if user == review.user %}
+    <form method="POST" action="{% url 'delete_review' review.id %}" class="mt-1">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+    </form>
+{% endif %}
+            </div>
+        {% endfor %}
+        {% if reviews|length > 3 %}
+            <div class="text-center mt-3">
+                <button id="showMoreBtn" class="btn btn-outline-dark btn-sm">Show More Reviews</button>
+            </div>
+        {% endif %}
+    {% else %}
+        <p class="text-muted">No reviews yet. Be the first to leave feedback!</p>
+    {% endif %}
+
+
+        <!-- Review Form -->
+        <div class="card p-4 shadow-sm border-0 bg-white mt-4">
+            <h5 class="mb-3">Leave a Review</h5>
+            <form method="POST" action="{% url 'leave_review' professional.id %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Rating:</label>
+                    <div class="rating-stars">
+                        {% for i in "54321" %}
+                            <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}">
+                            <label for="star{{ i }}" title="{{ i }} stars">★</label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="id_comment" class="form-label">Comment:</label>
+                    {{ review_form.comment }}
+                </div>
+                
+                <button type="submit" class="btn btn-dark">Submit Review</button>
+            </form>
+        </div>
+    </div>
 </div>
 
-<!-- Custom CSS -->
+<!-- Styles -->
 <style>
-    .profile-image img {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #000;
-    }
+.profile-image img {
+    width: 130px;
+    height: 130px;
+    object-fit: cover;
+    border: 4px solid #000;
+}
 
-    .card {
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        transition: 0.3s ease-in-out;
-    }
+.profile-card {
+    background: #f9f9f9;
+    border-radius: 20px;
+}
 
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-    }
+.slot-card {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    min-width: 160px;
+    text-align: center;
+    transition: 0.2s ease;
+}
 
-    .slot-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin-top: 10px;
-    }
+.slot-card:hover {
+    background-color: #000;
+    color: white;
+}
 
-    .slot-card {
-        background: #ffffff;
-        color: #333;
-        padding: 15px 20px;
-        border-radius: 12px;
-        border: 1px solid #ddd;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.05);
-        min-width: 150px;
-        text-align: center;
-        font-size: 14px;
-        transition: 0.3s ease;
-        cursor: pointer;
-    }
+.rating-stars {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    font-size: 1.5rem;
+    gap: 5px;
+}
 
-    .slot-card:hover {
-        background: #000;
-        color: white;
-    }
+.rating-stars input {
+    display: none;
+}
 
-    .date {
-        font-weight: bold;
-        margin-bottom: 6px;
-        font-size: 16px;
-    }
+.rating-stars label {
+    color: #ccc;
+    cursor: pointer;
+}
 
-    .time {
-        font-size: 13px;
-        color: #555;
-    }
+.rating-stars input:checked ~ label,
+.rating-stars label:hover,
+.rating-stars label:hover ~ label {
+    color: #f5c518;
+}
 
-    .social-links .btn {
-        margin: 5px;
-    }
+textarea, select {
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 1rem;
+    width: 100%;
+    border: 1px solid #ccc;
+}
 
-    .ratings {
-        font-size: 16px;
-        font-weight: bold;
-    }
+textarea:focus {
+    outline: none;
+    border-color: #000;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
 
-    .ratings .text-warning {
-        font-size: 18px;
-    }
+.btn-dark {
+    background-color: #000;
+    border-color: #000;
+}
 
-    .btn-outline-dark {
-        border-color: #000;
-        color: #000;
-    }
+.btn-dark:hover {
+    background-color: #333;
+}
 
-    .btn-outline-dark:hover {
-        background: #000;
-        color: white;
-    }
+.btn-secondary {
+    background-color: #555;
+    color: white;
+}
 
-    .btn-dark {
-        background-color: #000;
-        border-color: #000;
-    }
-
-    .btn-dark:hover {
-        background-color: #333;
-        border-color: #333;
-    }
-
-    .btn-secondary {
-        background-color: #333;
-        color: white;
-    }
-
-    .btn-secondary:hover {
-        background-color: #444;
-        color: white;
-    }
+.btn-secondary:hover {
+    background-color: #444;
+}
 </style>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const showMoreBtn = document.getElementById('showMoreBtn');
+        if (showMoreBtn) {
+            showMoreBtn.addEventListener('click', function () {
+                const hiddenReviews = document.querySelectorAll('.extra-review');
+                hiddenReviews.forEach(el => el.classList.remove('d-none'));
+                showMoreBtn.style.display = 'none';
+            });
+        }
+    });
+</script>
 
 {% endblock %}

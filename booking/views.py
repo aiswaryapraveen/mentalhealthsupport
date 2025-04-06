@@ -142,6 +142,7 @@ from django.shortcuts import render
 from users.models import Professional1
 from django.utils.timezone import now
 from booking.models import Availability
+from django.db.models import Q
 def booking_page(request):
     specialization_filter = request.GET.get("specialization", "").strip()
     # Get all approved professionals
@@ -151,9 +152,14 @@ def booking_page(request):
         professionals = professionals.filter(specialization__icontains=specialization_filter)
 
     today = now().date()
+    current_time = now().time()
     # Get all available slots (not booked)
     availability_list = Availability.objects.filter(date__gte=today).order_by('date', 'start_time')
-
+    # Filter availability to exclude slots where the current time is past the end time
+    availability_list = availability_list.filter(
+        Q(date__gt=today) |  # Keep future slots
+        Q(date=today, end_time__gt=current_time)  # Keep today's slots where end_time hasn't passed
+    )
     user_bookings = Booking.objects.filter(user=request.user, status="Confirmed", availability__date__gte=today)
     context = {
         "professionals": professionals,
@@ -163,15 +169,61 @@ def booking_page(request):
     }
 
     return render(request, "booking/booking_page.html", context)
+from users.forms import ReviewForm
+from users.models import ProfessionalReview  # Assuming this is the correct model import
+from django.db.models import Avg
 
+from django.db.models import Avg, Count
+from users.models import ProfessionalReview, Professional1
+
+import math
+from django.db.models import Avg, Count
+from django.shortcuts import render, get_object_or_404
+from django.core.exceptions import ObjectDoesNotExist
 def professional_profile(request, professional_id):
-    professional = get_object_or_404(Professional1, id=professional_id)
-    availability_list = Availability.objects.filter(professional=professional).order_by('date', 'start_time')
+    professional = get_object_or_404(Professional1.objects.select_related('user'), id=professional_id)
 
-    return render(request, 'booking/professional_profile.html', {
+        # Try to get details only if it exists
+    try:
+        details = professional.details
+        profile_picture = details.profile_picture if details.profile_picture else None
+    except ObjectDoesNotExist:
+        details = None
+        profile_picture = None
+    reviews = ProfessionalReview.objects.filter(professional=professional).order_by('-created_at')[:5]
+
+    
+    rating_avg = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+    review_count = reviews.aggregate(Count('id'))['id__count'] or 0
+
+    # Calculate full stars, half star, and empty stars
+    rating = round(rating_avg, 1)
+    full_stars = int(rating_avg)
+    half_star = 1 if (rating_avg - full_stars) >= 0.25 and (rating_avg - full_stars) < 0.75 else 0
+    empty_stars = 5 - full_stars - half_star
+     # Get notifications for the professional
+    notifications = Notification.objects.filter(user=professional.user, is_read=False)
+
+    context = {
         'professional': professional,
-        'availability_list': availability_list
-    })
+        'reviews': reviews,
+        'details': details, 
+        'profile_picture': profile_picture,
+        'review_form': ReviewForm(),
+        'availability_list': Availability.objects.filter(professional=professional),
+        'review_count': review_count,
+        'rating_avg': round(rating_avg, 1),
+        'full_stars': full_stars,
+        'half_star': half_star,
+        'empty_stars': empty_stars,
+        'notifications': notifications,
+
+    }
+
+
+    return render(request, 'booking/professional_profile.html', context)
+
+
 
 @login_required
 def delete_booking(request, booking_id):

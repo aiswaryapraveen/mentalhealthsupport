@@ -31,6 +31,31 @@ def is_admin(user):
     return user.is_staff
 
 @user_passes_test(is_admin)
+def manage_reviews(request):
+    reviews = ProfessionalReview.objects.select_related('user', 'professional').order_by('-created_at')
+    return render(request, 'users/manage_reviews.html', {'reviews': reviews})
+
+@user_passes_test(is_admin)
+def admin_delete_review(request, review_id):
+    review = get_object_or_404(ProfessionalReview, id=review_id)
+    review.delete()
+
+    user = review.user
+    # Create notification for the user whose review was deleted
+    notification_url = reverse('professional_profile', kwargs={'professional_id': review.professional.id})
+    Notification.objects.create(
+        user=user,
+        message=format_html(
+            '<a href="{}" style="color: #007bff; text-decoration: underline;">Your review for {} has been deleted by the admin.</a>',
+            notification_url,
+            review.professional.user.first_name  # Display the professional's first name in the notification
+        ),
+        notification_type="message"
+    )
+    messages.success(request, "Review deleted by admin.")
+    return redirect('manage_reviews')  # Make sure this URL name exists
+
+@user_passes_test(is_admin)
 @csrf_exempt
 def add_goal(request):
     if request.method == "POST":
@@ -133,11 +158,21 @@ def professional_registration(request):
             return redirect('mentor-reg')
     else:
         form = ProfessionalRegistrationForm()
-
+    profile_details = None
+    if request.user.is_authenticated:
+        try:
+            professional = Professional1.objects.get(user=request.user)
+            try:
+                profile_details = professional.details
+            except ProfessionalDetails.DoesNotExist:
+                profile_details = None
+        except Professional1.DoesNotExist:
+            profile_details = None
     return render(request, 'users/mentor-reg.html', {
         'form': form,
         'existing_application': existing_application,
-        'max_reached': approved_count >= MAX_PROFESSIONALS
+        'max_reached': approved_count >= MAX_PROFESSIONALS,
+        'profile_details': profile_details,
     })
 
 @login_required
@@ -246,6 +281,7 @@ from core.models import JournalEntry , DailyGoal, PersonalGoal # Import models t
 from datetime import timedelta
 from suggestions.models import SelfAffirmation, UserMeditation
 from django.utils.timezone import now
+from .models import CustomUser, Professional1, ProfessionalDetails, ProfessionalReview
 
 @login_required
 def profile_view(request):
@@ -273,6 +309,19 @@ def profile_view(request):
 
     # Fetch completed meditations
     completed_meditations = UserMeditation.objects.filter(user=user)
+    # For professionals only
+    professional_data = None
+    professional_details = None
+    if user.is_professional:
+        try:
+            professional_data = Professional1.objects.select_related('user').get(user=user)
+            professional_details = ProfessionalDetails.objects.filter(professional=professional_data).first()
+        except Professional1.DoesNotExist:
+            pass
+    # Inside the profile_view function
+    reviews = None
+    if user.is_professional and professional_data:
+        reviews = ProfessionalReview.objects.filter(professional=professional_data).select_related('user')
 
     return render(request, 'users/profile.html', {
         'user': user,
@@ -281,6 +330,9 @@ def profile_view(request):
         'streak': streak,
         'affirmations': affirmations,
         'completed_meditations': completed_meditations,
+        'professional_data': professional_data,
+        'professional_details': professional_details,
+        'reviews':reviews,
     })
 
 from django.contrib.auth.decorators import login_required
@@ -317,3 +369,125 @@ def switch_to_normal_user(request):
         messages.error(request, "Invalid request.")
 
     return redirect('dashboard')  # or 'profile', as needed
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Professional1
+from .models import ProfessionalDetails
+from .forms import ProfessionalDetailsForm
+
+@login_required
+def update_professional_profile(request):
+    if not request.user.is_professional:
+        return redirect('dashboard')
+
+    try:
+        professional = Professional1.objects.get(user=request.user, is_approved=True)
+    except Professional1.DoesNotExist:
+        return redirect('dashboard')
+
+    details, created = ProfessionalDetails.objects.get_or_create(professional=professional)
+
+    if request.method == 'POST':
+        form = ProfessionalDetailsForm(request.POST, request.FILES, instance=details)
+        if form.is_valid():
+            profile = form.save(commit=False)
+
+            # Check if user selected "Remove Profile Picture"
+            if 'remove_picture' in request.POST:
+                if profile.profile_picture:
+                    profile.profile_picture.delete(save=False)
+                profile.profile_picture = None
+
+            profile.save()
+            return redirect('mentor-reg')
+    else:
+        form = ProfessionalDetailsForm(instance=details)
+
+    return render(request, 'users/update_professional.html', {'form': form})
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .forms import CustomUserForm, Professional1Form, ProfessionalDetailsForm
+from .models import Professional1, ProfessionalDetails
+
+@login_required
+def settings_view(request):
+    user = request.user
+    user_form = CustomUserForm(instance=user)
+    professional_form = None
+    details_form = None
+
+    if user.is_professional:
+        professional_obj = Professional1.objects.filter(user=user).first()
+        details_obj = getattr(professional_obj, 'details', None)
+
+        professional_form = Professional1Form(instance=professional_obj)
+        details_form = ProfessionalDetailsForm(instance=details_obj)
+
+    if request.method == 'POST':
+        user_form = CustomUserForm(request.POST, instance=user)
+
+        if user.is_professional:
+            professional_form = Professional1Form(request.POST, request.FILES, instance=professional_obj)
+            details_form = ProfessionalDetailsForm(request.POST, request.FILES, instance=details_obj)
+
+            if user_form.is_valid() and professional_form.is_valid() and details_form.is_valid():
+                user_form.save()
+                professional_form.save()
+                details_form.save()
+                return redirect('settings')
+        else:
+            if user_form.is_valid():
+                user_form.save()
+                return redirect('settings')
+
+    context = {
+        'user_form': user_form,
+        'professional_form': professional_form,
+        'details_form': details_form,
+        'is_professional': user.is_professional,
+    }
+    return render(request, 'users/settings.html', context)
+# views.py
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+from .models import ProfessionalReview
+from .forms import ReviewForm
+from users.models import Professional1
+
+@login_required
+def leave_review(request, professional_id):
+    professional = get_object_or_404(Professional1, id=professional_id)
+
+    if request.method == 'POST':
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.user = request.user
+            review.professional = professional
+            review.save()
+
+            # Create notification for the professional
+            review_url = reverse('professional_profile', kwargs={'professional_id': professional.id})
+
+            # Notification for the professional about a new review
+            Notification.objects.create(
+                user=professional.user,
+                message=format_html(
+                    '<a href="{}" style="color: #007bff; text-decoration: underline;">You have received a new review from {}</a>',
+                    review_url,
+                    request.user.username
+                ),
+                notification_type="message"
+            )
+            return redirect('professional_profile', professional_id=professional.id)
+    else:
+        form = ReviewForm()
+
+    return render(request, 'users/leave_review.html', {'form': form, 'professional': professional})
+@login_required
+def delete_review(request, review_id):
+    review = get_object_or_404(ProfessionalReview, id=review_id, user=request.user)
+    professional_id = review.professional.id
+    review.delete()
+    messages.success(request, "Your review was deleted successfully.")
+    return redirect('professional_profile', professional_id)

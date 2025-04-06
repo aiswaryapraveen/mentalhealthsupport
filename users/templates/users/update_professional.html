@@ -1,0 +1,196 @@
+{% extends 'core/base2.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="profile-form-wrapper">
+        <h2 class="form-title">Update Your Professional Profile</h2>
+
+        <form method="POST" enctype="multipart/form-data" class="profile-form">
+            {% csrf_token %}
+
+            {% for field in form %}
+                {% if field.name == 'profile_picture' %}
+                    <div class="form-group">
+                        <label class="form-label">Current Profile Picture</label><br>
+                        {% if field.value %}
+                            <img src="{{ field.value.url }}" alt="Profile Picture" class="profile-preview"><br>
+
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="remove_picture" id="removePictureSwitch" onchange="toggleFileInput()">
+                                <label class="form-check-label" for="removePictureSwitch">Remove Profile Picture</label>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No profile picture uploaded</p>
+                        {% endif %}
+
+                        <div id="fileInputWrapper" class="mt-3">
+                            <label class="form-label mt-3">Change Profile Picture</label>
+                            {{ field.as_widget }}
+
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="form-group">
+                        <label class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <small class="form-text">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <div class="error-text">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <div class="form-submit">
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-save me-2"></i>Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleFileInput() {
+        const checkbox = document.getElementById('removePictureSwitch');
+        const fileInputWrapper = document.getElementById('fileInputWrapper');
+
+        if (checkbox.checked) {
+            fileInputWrapper.style.display = 'none';
+        } else {
+            fileInputWrapper.style.display = 'block';
+        }
+    }
+
+    // Run on page load in case checkbox is pre-checked
+    document.addEventListener("DOMContentLoaded", toggleFileInput);
+</script>
+
+<style>
+/* Container */
+.profile-form-wrapper {
+    max-width: 700px;
+    margin: 60px auto;
+    background-color: #fefefe;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+}
+
+/* Heading */
+.form-title {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 28px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Form Group */
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #34495e;
+}
+
+.profile-form input,
+.profile-form textarea,
+.profile-form select {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    transition: border-color 0.3s ease;
+}
+
+.profile-form input:focus,
+.profile-form textarea:focus,
+.profile-form select:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+/* Error & Help Text */
+.error-text {
+    color: #e74c3c;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+.form-text {
+    font-size: 13px;
+    color: #7f8c8d;
+}
+
+/* Profile Picture Preview */
+.profile-preview {
+    max-width: 180px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    border: 2px solid #ccc;
+}
+
+/* Toggle Switch Style */
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.form-check-input {
+    width: 1.3em;
+    height: 1.3em;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.form-check-input:checked {
+    background-color: #3498db;
+    border-color: #3498db;
+}
+
+.form-check-label {
+    font-size: 14px;
+    color: #2c3e50;
+}
+
+/* Submit Button */
+.form-submit {
+    text-align: center;
+    margin-top: 35px;
+}
+
+.btn-submit {
+    background-color: #3498db;
+    color: #fff;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-submit:hover {
+    background-color: #2980b9;
+}
+</style>
+
+<!-- Font Awesome for Save Icon -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+{% endblock %}

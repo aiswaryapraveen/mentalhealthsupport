@@ -222,18 +222,14 @@
                         <i class="bi bi-person-circle"></i> {{ user.username }}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end position-absolute">
-                        {% if not user.is_professional and not user.is_superuser %}
+                        {% if not user.is_superuser %}
                         <li>
                             <a href="{% url 'user_profile' %}" class="dropdown-item">
                                 <i class="bi bi-person"></i> Profile
                             </a>
                         </li>
-                        {% else %}
-                        <li><a href=# class="dropdown-item">
-                            <i class="bi bi-person"></i> Profile
-                        </a> </li>
                         {% endif %}
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Settings</a></li>
+                        <li><a href="{% url 'settings' %}" class="dropdown-item" href="#"><i class="bi bi-gear"></i> Settings</a></li>
                     
                         <li><hr class="dropdown-divider"></li>
                     
@@ -283,6 +279,7 @@
         <a href="{% url 'request_view' %}"><i class="bi bi-inbox"></i> Requests</a>
         <a href="{% url 'manage_goals' %}"><i class="bi bi-bullseye"></i> Manage Goals</a>
         <a href="{% url 'manage_meditations' %}"><i class="bi bi-yin-yang"></i> Manage Meditations</a>
+        <a href="{% url 'manage_reviews' %}"><i class="bi bi-yin-yang"></i> Manage Reviews</a>
 
     {% elif user.is_professional %}
         <a href="{% url 'dashboard' %}"><i class="bi bi-house-door"></i> Dashboard</a>

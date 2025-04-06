@@ -151,13 +151,60 @@ def goals_view(request):
         "completed_daily_goals_percentage": completed_daily_goals_percentage,
         "combined_streak": combined_streak,
     })
-
+from django.utils import timezone
+from datetime import datetime
 @login_required
 def dashboard(request):
     total_users = CustomUser.objects.count() if request.user.is_superuser else None
     total_professionals = CustomUser.objects.filter(is_professional=True).count() if request.user.is_superuser else None
     pending_approvals = Professional1.objects.filter(is_approved=False).count() if request.user.is_superuser else 0
+    bookings = Booking.objects.filter(user=request.user, status='Confirmed')
+    for booking in bookings:
+            availability = booking.availability
 
+            # 30 minutes before the start time reminder
+            start_datetime = timezone.make_aware(datetime.combine(timezone.localdate(), availability.start_time))
+            reminder_time = start_datetime - timedelta(minutes=30)
+            print(f"Reminder time: {reminder_time}, Current time: {timezone.now()}")
+
+            existing_notifications = Notification.objects.filter(user=request.user, notification_type="reminder_30min").count()
+            print(f"Existing notifications: {existing_notifications}")
+
+            # Send a 30-minute reminder if the current time is greater than or equal to the reminder_time
+            if timezone.now() >= reminder_time and not Notification.objects.filter(user=request.user, notification_type="reminder_30min").exists():
+                print(f"Creating 30-minute reminder for {booking.professional.user.first_name}")
+                reminder_message = (
+                    f"Reminder: Your appointment with {booking.professional.user.first_name} is starting in 30 minutes."
+                    f" Please get ready!"
+                )
+                Notification.objects.create(
+                    user=request.user,
+                    message=reminder_message,
+                    notification_type="reminder_30min"
+                )
+
+            # Check if the booking has ended (i.e., the current time is greater than the end time)
+            if availability.end_time < timezone.now().time() and not booking.status == 'Cancelled':
+                # Check if the user has not already been notified
+                if not Notification.objects.filter(user=request.user, notification_type="review_reminder").exists():
+                    # Send reminder to review the professional
+                    review_url = reverse('professional_profile', kwargs={'professional_id': booking.professional.id})
+                    # Create the notification message with the link
+                    # Format the notification message with the link and user details
+                    formatted_message = format_html(
+                        'Your appointment with <strong>{}</strong> has ended. '
+                        'Please leave a review! You can write your review here: '
+                        '<a href="{}" style="color: blue; text-decoration: underline;">Write your review</a>',
+                        booking.professional.user.first_name,  # Professional's first name
+                        request.build_absolute_uri(review_url)  # The absolute URL for the review page
+                    )
+                    Notification.objects.create(
+                        user=request.user,
+                        message=formatted_message,
+                        notification_type="review_reminder"
+                    )
+                    messages.success(request, "Reminder sent to leave a review for your recent appointment.")
+                    break  # Exit the loop once the notification is sent
     grouped_entries = {}
     if not request.user.is_superuser and not request.user.is_professional:
         if request.method == "POST":
@@ -176,6 +223,7 @@ def dashboard(request):
         "total_users": total_users or 0,
         "total_professionals": total_professionals or 0,
         "pending_approvals": pending_approvals or 0,
+        'bookings': bookings,
     })
 
 def calculate_combined_streak(user):

@@ -1,0 +1,33 @@
+{% extends 'core/base2.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Manage All Reviews</h2>
+    <hr>
+    {% for review in reviews %}
+        <div class="border rounded p-3 mb-3 shadow-sm">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <strong>User:</strong> {{ review.user.get_full_name }}<br>
+                    <strong>Professional:</strong> {{ review.professional.user.get_full_name }}
+                </div>
+                <form action="{% url 'admin_delete_review' review.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                </form>
+            </div>
+            <div class="text-warning my-1">
+                {% for _ in "12345"|make_list %}
+                    {% if forloop.counter0 < review.rating %}
+                        ⭐
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <p>{{ review.comment }}</p>
+            <small class="text-muted">Posted on: {{ review.created_at|date:"M d, Y" }}</small>
+        </div>
+    {% empty %}
+        <p>No reviews found.</p>
+    {% endfor %}
+</div>
+{% endblock %}

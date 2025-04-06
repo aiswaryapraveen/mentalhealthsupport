@@ -35,5 +35,23 @@ class Professional1(models.Model):
     def __str__(self):
         return f"{self.user.username} - {'Approved' if self.is_approved else 'Pending Approval'}"
     
+class ProfessionalDetails(models.Model):
+    professional = models.OneToOneField(Professional1, on_delete=models.CASCADE, related_name='details')
 
+    bio = models.TextField(blank=True, null=True)
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+    location = models.CharField(max_length=255, blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    website = models.URLField(blank=True, null=True)
 
+    def __str__(self):
+        return f"{self.professional.user.username}'s Profile Details"
+class ProfessionalReview(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    professional = models.ForeignKey(Professional1, on_delete=models.CASCADE, related_name='reviews')
+    rating = models.PositiveSmallIntegerField(choices=[(i, str(i)) for i in range(1, 6)])
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.professional.user.username} ({self.rating}⭐)"

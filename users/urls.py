@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from .views import signup_view,profile_view,reapply_professional,switch_to_normal_user, user_management, add_personal_goal, delete_user, remove_professional_status, professional_registration, add_goal, delete_goal,manage_goals, forgotpassword
+from .views import signup_view,leave_review,manage_reviews, delete_review, admin_delete_review, settings_view, update_professional_profile, profile_view,reapply_professional,switch_to_normal_user, user_management, add_personal_goal, delete_user, remove_professional_status, professional_registration, add_goal, delete_goal,manage_goals, forgotpassword
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import CustomPasswordResetView
@@ -25,6 +25,13 @@ urlpatterns = [
     path('profile/', profile_view, name='user_profile'),
     path('switch-to-normal/', switch_to_normal_user, name='switch_to_normal_user'),
     path('reapply/', reapply_professional, name='reapply_professional'),
+    path('update-professional-profile/', update_professional_profile, name='update_professional_profile'),
+    path('settings/', settings_view, name='settings'),
+    path('professionals/<int:professional_id>/review/', leave_review, name='leave_review'),
+    path('review/delete/<int:review_id>/', delete_review, name='delete_review'),
+    path('admin/manage-reviews/', manage_reviews, name='manage_reviews'),
+    path('admin/review/delete/<int:review_id>/', admin_delete_review, name='admin_delete_review'),
+
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
