@@ -1,0 +1,207 @@
+{% extends 'core/base2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+  <a href="{% url 'relaxation_games_home' %}" class="btn btn-outline-secondary mb-4" style="border-radius: 8px;">
+    ⬅ Back
+  </a>
+
+  <div class="card shadow-lg rounded-4 p-4">
+    <h1 class="text-center mb-3">Four in a Row</h1>
+
+    <div class="text-center mb-3">
+      <div class="btn-group game-mode" role="group">
+        <button id="pvp" class="btn btn-dark active" onclick="setGameMode('pvp')">Player vs Player</button>
+        <button id="pvc" class="btn btn-dark" onclick="setGameMode('pvc')">Player vs CPU</button>
+      </div>
+    </div>
+
+    <h5 id="status" class="text-center mb-3 fw-semibold">Player Red's turn</h5>
+
+    <div id="scoreboard" class="text-center mb-4">
+      <span class="me-3"><strong>Red:</strong> <span id="score-red">0</span></span>
+      <span><strong>Yellow (CPU):</strong> <span id="score-yellow">0</span></span>
+    </div>
+
+    <div class="d-flex justify-content-center mb-3">
+      <div class="board" id="board"></div>
+    </div>
+
+    <div class="text-center">
+      <button class="btn btn-danger px-4 py-2 fw-bold" onclick="resetGame()">Reset Game</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .board {
+    display: grid;
+    grid-template-columns: repeat(7, 65px);
+    gap: 12px;
+    background: #1e1e1e;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+    width: fit-content;
+  }
+
+  .cell {
+    width: 65px;
+    height: 65px;
+    background: #ecf0f1;
+    border-radius: 50%;
+    box-shadow: inset 0 -6px 12px rgba(0,0,0,0.25);
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.3s ease;
+  }
+
+  .cell:hover {
+    transform: translateY(-6px);
+    box-shadow: inset 0 -4px 10px rgba(0,0,0,0.3);
+  }
+
+  .red {
+    background: radial-gradient(circle at 30% 30%, #ff4e50, #b31217);
+  }
+
+  .yellow {
+    background: radial-gradient(circle at 30% 30%, #ffeb3b, #f1c40f);
+  }
+</style>
+
+<script>
+  const rows = 6, cols = 7;
+  let board = [];
+  let currentPlayer = 'red';
+  let gameActive = true;
+  let gameMode = 'pvp';
+  let scores = { red: 0, yellow: 0 };
+
+  function setGameMode(mode) {
+    gameMode = mode;
+    document.getElementById('pvp').classList.toggle('active', mode === 'pvp');
+    document.getElementById('pvc').classList.toggle('active', mode === 'pvc');
+    resetGame();
+  }
+
+  function resetGame() {
+    board = Array.from({ length: rows }, () => Array(cols).fill(null));
+    currentPlayer = 'red';
+    gameActive = true;
+    document.getElementById("status").innerText = `Player ${currentPlayer}'s turn`;
+    createBoard();
+    updateScoreboard();
+  }
+
+  function createBoard() {
+    const boardElement = document.getElementById("board");
+    boardElement.innerHTML = "";
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        cell.dataset.row = r;
+        cell.dataset.col = c;
+        cell.addEventListener("click", handleMove);
+        boardElement.appendChild(cell);
+      }
+    }
+  }
+
+  function handleMove(event) {
+    if (!gameActive || (gameMode === 'pvc' && currentPlayer === 'yellow')) return;
+    const col = parseInt(event.target.dataset.col);
+    makeMove(col);
+  }
+
+  function makeMove(col) {
+    for (let r = rows - 1; r >= 0; r--) {
+      if (!board[r][col]) {
+        board[r][col] = currentPlayer;
+        updateBoard();
+        if (checkWin(r, col)) {
+          document.getElementById("status").innerText = `Player ${currentPlayer} wins!`;
+          scores[currentPlayer]++;
+          updateScoreboard();
+          gameActive = false;
+          return;
+        }
+        if (checkDraw()) {
+          document.getElementById("status").innerText = `Game ended in a draw!`;
+          gameActive = false;
+          return;
+        }
+        currentPlayer = currentPlayer === 'red' ? 'yellow' : 'red';
+        document.getElementById("status").innerText = `Player ${currentPlayer}'s turn`;
+
+        if (gameMode === 'pvc' && currentPlayer === 'yellow') {
+          setTimeout(makeCpuMove, 500);
+        }
+        break;
+      }
+    }
+  }
+
+  function makeCpuMove() {
+    let validColumns = [];
+    for (let c = 0; c < cols; c++) {
+      if (board[0][c] === null) validColumns.push(c);
+    }
+    if (validColumns.length > 0) {
+      const randomCol = validColumns[Math.floor(Math.random() * validColumns.length)];
+      makeMove(randomCol);
+    }
+  }
+
+  function updateBoard() {
+    document.querySelectorAll(".cell").forEach(cell => {
+      const r = cell.dataset.row;
+      const c = cell.dataset.col;
+      cell.className = "cell";
+      if (board[r][c]) {
+        cell.classList.add(board[r][c]);
+      }
+    });
+  }
+
+  function updateScoreboard() {
+    document.getElementById("score-red").innerText = scores.red;
+    document.getElementById("score-yellow").innerText = scores.yellow;
+  }
+
+  function checkDraw() {
+    return board[0].every(cell => cell !== null);
+  }
+
+  function checkWin(row, col) {
+    const directions = [
+      [[-1, 0], [1, 0]],
+      [[0, -1], [0, 1]],
+      [[-1, -1], [1, 1]],
+      [[-1, 1], [1, -1]]
+    ];
+
+    for (let direction of directions) {
+      let count = 1;
+      for (let [dr, dc] of direction) {
+        let r = row + dr;
+        let c = col + dc;
+        while (
+          r >= 0 && r < rows &&
+          c >= 0 && c < cols &&
+          board[r][c] === currentPlayer
+        ) {
+          count++;
+          r += dr;
+          c += dc;
+        }
+      }
+      if (count >= 4) return true;
+    }
+    return false;
+  }
+
+  resetGame();
+</script>
+{% endblock %}

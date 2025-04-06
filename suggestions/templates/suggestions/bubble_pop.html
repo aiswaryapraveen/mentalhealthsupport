@@ -1,0 +1,180 @@
+{% extends 'core/base2.html' %}
+{% block content %}
+<style>
+  canvas {
+    background: linear-gradient(to bottom, #cce7f7, #f0faff);
+    border-radius: 10px;
+    display: block;
+    margin: auto;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  }
+  .controls {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .controls button {
+    margin: 0 10px;
+    padding: 8px 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .start-btn { background-color: #4CAF50; color: white; }
+  .stop-btn { background-color: #f44336; color: white; }
+</style>
+
+<div class="container text-center mt-4">
+  <h2>Bubble Pop</h2>
+  <p class="text-muted">Tap the bubbles gently to pop and relax 🌿</p>
+  <p class="text-info">🏆 Your High Score: <strong>{{ high_score }}</strong></p>
+
+
+  <canvas id="bubbleCanvas" width="600" height="400"></canvas>
+  <div class="controls mt-4">
+    <button class="start-btn " onclick="startGame()">Start</button>
+    <button class="stop-btn" onclick="stopGame()">Stop</button>
+  </div>
+  <a href="{% url 'relaxation_games_home' %}" class="btn btn-outline-secondary mb-4 mt-4" style="border-radius: 8px;">
+    ⬅ Back
+  </a>
+</div>
+
+<script>
+const canvas = document.getElementById('bubbleCanvas');
+const ctx = canvas.getContext('2d');
+
+let bubbles = [];
+let colors = ['#A3DFF7', '#B0F4E6', '#D2E3FC', '#FCD5CE'];
+let popCount = 0;
+let running = false;
+
+let feedbackText = "";
+let feedbackTimer = 0;
+
+class Bubble {
+  constructor() {
+    this.reset();
+  }
+
+  reset() {
+    this.x = Math.random() * canvas.width;
+    this.y = canvas.height + Math.random() * 100;
+    this.radius = 20 + Math.random() * 15;
+    this.speed = 0.5 + Math.random() * 1.5;
+    this.color = colors[Math.floor(Math.random() * colors.length)];
+    this.popped = false;
+  }
+
+  draw() {
+    if (!this.popped) {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.fill();
+      ctx.strokeStyle = 'white';
+      ctx.stroke();
+    }
+  }
+
+  update() {
+    if (!this.popped) {
+      this.y -= this.speed;
+      if (this.y + this.radius < 0) this.reset();
+    }
+  }
+}
+
+for (let i = 0; i < 15; i++) {
+  bubbles.push(new Bubble());
+}
+
+canvas.addEventListener('click', function (e) {
+  if (!running) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  bubbles.forEach(bubble => {
+    const dx = mx - bubble.x;
+    const dy = my - bubble.y;
+    if (Math.sqrt(dx * dx + dy * dy) < bubble.radius && !bubble.popped) {
+      bubble.popped = true;
+      popCount++;
+      showFeedback();
+      setTimeout(() => bubble.reset(), 800);
+    }
+  });
+});
+
+function showFeedback() {
+  const messages = [
+    "Nice pop!",
+    "You're doing great!",
+    "Keep going 💙",
+    "Calm and steady...",
+    "Pop to peace..."
+  ];
+  feedbackText = messages[Math.floor(Math.random() * messages.length)];
+  feedbackTimer = 60;
+}
+
+function drawFeedback() {
+  if (feedbackTimer > 0) {
+    ctx.font = "20px Arial";
+    ctx.fillStyle = "#333";
+    ctx.textAlign = "center";
+    ctx.fillText(feedbackText, canvas.width / 2, 40);
+    feedbackTimer--;
+  }
+}
+
+function drawCounter() {
+  ctx.font = "18px Arial";
+  ctx.fillStyle = "#555";
+  ctx.textAlign = "left";
+  ctx.fillText("Bubbles popped: " + popCount, 10, 30);
+}
+
+function animate() {
+  if (!running) return;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  bubbles.forEach(bubble => {
+    bubble.update();
+    bubble.draw();
+  });
+  drawCounter();
+  drawFeedback();
+  requestAnimationFrame(animate);
+}
+
+function startGame() {
+  running = true;
+  animate();
+}
+
+function stopGame() {
+  running = false;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.font = "22px Arial";
+  ctx.fillStyle = "#333";
+  ctx.textAlign = "center";
+  ctx.fillText("Session stopped. Come back anytime 🧘", canvas.width / 2, canvas.height / 2);
+
+  // Send score to server
+  fetch("{% url 'save_bubble_score' %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "X-CSRFToken": "{{ csrf_token }}"
+    },
+    body: `score=${popCount}`
+  }).then(res => res.json())
+    .then(data => console.log(data.message));
+}
+
+</script>
+{% endblock %}

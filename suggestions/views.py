@@ -256,3 +256,95 @@ def delete_meditation(request, meditation_id):
     meditation.delete()
     messages.success(request, "Meditation deleted successfully!")
     return redirect('manage_meditations')
+@login_required
+def relaxation_games_home(request):
+    return render(request, 'suggestions/relaxation_games_home.html')
+@login_required
+def bubble_pop_game(request):
+    high_score = BubbleGameRecord.objects.filter(user=request.user).first()
+    return render(request, 'suggestions/bubble_pop.html', {
+       'high_score': high_score.score if high_score else 0 
+    })
+
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from .models import BubbleGameRecord, MemoryGameScore
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from .models import FocusMazeScore
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.db.models import Min
+@login_required
+def save_bubble_score(request):
+    if request.method == "POST":
+        score = int(request.POST.get("score", 0))
+        if score > 0:
+            BubbleGameRecord.objects.create(user=request.user, score=score)
+        return JsonResponse({"message": "Score saved!"})
+    return JsonResponse({"error": "Invalid request"}, status=400)
+@login_required
+def memory_game_view(request):
+    best_time = None
+    best_attempts = None
+
+    if request.user.is_authenticated:
+        best_score = MemoryGameScore.objects.filter(user=request.user, score=8).order_by('time_taken').first()
+        if best_score:
+            best_time = best_score.time_taken
+            best_attempts = best_score.attempts
+
+    return render(request, 'suggestions/memory_game.html', {
+        'best_time': best_time,
+        'best_attempts': best_attempts
+    })
+
+@login_required
+@csrf_exempt
+def save_memory_score(request):
+    if request.method == 'POST' and request.user.is_authenticated:
+        score = int(request.POST.get('score', 0))
+        time_taken = int(request.POST.get('time_taken', 0))
+        attempts = int(request.POST.get('attempts', 0))
+
+        # Save the new score
+        MemoryGameScore.objects.create(
+            user=request.user,
+            score=score,
+            time_taken=time_taken,
+            attempts=attempts
+        )
+
+        # Get best score for user (only if all matches found i.e. score == 8)
+        best_score = MemoryGameScore.objects.filter(user=request.user, score=8).order_by('time_taken').first()
+
+        return JsonResponse({
+            'message': 'Score saved successfully!',
+            'best_time': best_score.time_taken if best_score else None,
+            'best_attempts': best_score.attempts if best_score else None
+        })
+    
+    return JsonResponse({'message': 'Failed to save score.'}, status=400)
+def focus_maze(request):
+    high_score = None
+    if request.user.is_authenticated:
+        best = FocusMazeScore.objects.filter(user=request.user).aggregate(Min('time_taken'))
+        high_score = best['time_taken__min']
+    return render(request, 'suggestions/focus_maze.html',{
+        'high_score': high_score,
+    })
+@csrf_exempt
+def save_focus_maze_score(request):
+    if request.method == 'POST' and request.user.is_authenticated:
+        data = json.loads(request.body)
+        time_taken = data.get('time_taken')
+
+        if time_taken is not None:
+            FocusMazeScore.objects.create(user=request.user, time_taken=time_taken)
+            # get new best time
+            best = FocusMazeScore.objects.filter(user=request.user).aggregate(Min('time_taken'))
+            return JsonResponse({'status': 'success', 'new_high': best['time_taken__min']}, status=201)
+
+    return JsonResponse({'status': 'error'}, status=400)
+def four_in_a_row_view(request):
+    return render(request, 'suggestions/four_in_a_row.html')

@@ -27,3 +27,30 @@ class UserMeditation(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.meditation.title}"
+class BubbleGameRecord(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    score = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-score']  # highest scores first
+
+    def __str__(self):
+        return f"{self.user.username} - {self.score}"
+
+class MemoryGameScore(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    score = models.PositiveIntegerField()
+    time_taken = models.IntegerField(null=True, blank=True)  # in seconds
+    attempts = models.IntegerField(null=True, blank=True)
+    date_played = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.score}"
+class FocusMazeScore(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    time_taken = models.FloatField(help_text="Time taken in seconds")
+    date_played = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.time_taken}s"

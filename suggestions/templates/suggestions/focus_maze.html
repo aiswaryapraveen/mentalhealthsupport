@@ -1,0 +1,256 @@
+{% extends 'core/base2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container text-center mt-4">
+  <h2 class="mb-4">🧠 Focus Maze</h2>
+  <p class="mb-3">Use arrow keys to guide the dot. Don’t touch the walls!</p>
+
+  <div class="mt-3" id="timer" style="font-weight:bold;">Time: 0.0s</div>
+  <div class="mt-2">⏱️ Best Time: <span id="highScore">{% if high_score %}{{ high_score }}{% else %}--{% endif %}</span></div>
+
+  <div id="maze-container" class="mt-4">
+    <canvas id="mazeCanvas" width="400" height="400"></canvas>
+  </div>
+
+  <p class="mt-4 fw-bold text-success" id="game-status"></p>
+  <div>
+    <button class="btn btn-success me-2" id="startBtn">Start</button>
+    <button class="btn btn-warning" id="restartBtn" disabled>Restart</button>
+  </div>
+  <a href="{% url 'relaxation_games_home' %}" class="btn btn-outline-secondary mb-4 mt-4" style="border-radius: 8px;">
+    ⬅ Back
+  </a>
+</div>
+
+<style>
+  #maze-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  canvas {
+    background-color: #000; /* black background */
+    border: 4px solid #444;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+</style>
+
+<script>
+const canvas = document.getElementById("mazeCanvas");
+const ctx = canvas.getContext("2d");
+const startBtn = document.getElementById("startBtn");
+const restartBtn = document.getElementById("restartBtn");
+const timerDisplay = document.getElementById("timer");
+const highScoreDisplay = document.getElementById("highScore");
+const gameStatus = document.getElementById("game-status");
+
+const cols = 10;
+const rows = 10;
+const cellSize = canvas.width / cols;
+let grid = [], current, stack = [];
+let player = { x: 0, y: 0 };
+let gameStarted = false;
+let startTime, timerInterval;
+
+// Timer Logic
+function startTimer() {
+  startTime = performance.now();
+  timerInterval = setInterval(() => {
+    const now = performance.now();
+    const elapsed = ((now - startTime) / 1000).toFixed(1);
+    timerDisplay.innerText = `Time: ${elapsed}s`;
+  }, 100);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  const finalTime = ((performance.now() - startTime) / 1000).toFixed(1);
+  timerDisplay.innerText = `Time: ${finalTime}s`;
+
+  fetch("{% url 'save_focus_maze_score' %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": "{{ csrf_token }}",
+    },
+    body: JSON.stringify({ time_taken: finalTime }),
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === "success") {
+      highScoreDisplay.textContent = data.new_high;
+    }
+  });
+}
+
+// Maze Cell
+class Cell {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.walls = [true, true, true, true]; // Top, Right, Bottom, Left
+    this.visited = false;
+  }
+
+  draw() {
+    const x = this.x * cellSize;
+    const y = this.y * cellSize;
+
+    ctx.strokeStyle = "#00f2ff";
+    ctx.lineWidth = 2;
+
+    if (this.walls[0]) drawLine(x, y, x + cellSize, y);
+    if (this.walls[1]) drawLine(x + cellSize, y, x + cellSize, y + cellSize);
+    if (this.walls[2]) drawLine(x + cellSize, y + cellSize, x, y + cellSize);
+    if (this.walls[3]) drawLine(x, y + cellSize, x, y);
+  }
+
+  checkNeighbors() {
+    const neighbors = [
+      grid[index(this.x, this.y - 1)], // Top
+      grid[index(this.x + 1, this.y)], // Right
+      grid[index(this.x, this.y + 1)], // Bottom
+      grid[index(this.x - 1, this.y)]  // Left
+    ].filter(n => n && !n.visited);
+
+    return neighbors.length ? neighbors[Math.floor(Math.random() * neighbors.length)] : undefined;
+  }
+}
+
+function index(x, y) {
+  return x < 0 || y < 0 || x >= cols || y >= rows ? -1 : x + y * cols;
+}
+
+function drawLine(x1, y1, x2, y2) {
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+}
+
+function removeWalls(a, b) {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+
+  if (dx === 1) [a.walls[3], b.walls[1]] = [false, false]; // left
+  if (dx === -1) [a.walls[1], b.walls[3]] = [false, false]; // right
+  if (dy === 1) [a.walls[0], b.walls[2]] = [false, false]; // top
+  if (dy === -1) [a.walls[2], b.walls[0]] = [false, false]; // bottom
+}
+
+function drawPlayer() {
+  const x = player.x * cellSize + cellSize / 2;
+  const y = player.y * cellSize + cellSize / 2;
+  ctx.beginPath();
+  ctx.arc(x, y, cellSize / 4, 0, Math.PI * 2);
+  ctx.fillStyle = "#00ff88";
+  ctx.shadowColor = "#00ff88";
+  ctx.shadowBlur = 10;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+function drawGoal() {
+  const x = (cols - 1) * cellSize + cellSize / 2;
+  const y = (rows - 1) * cellSize + cellSize / 2;
+  ctx.beginPath();
+  ctx.arc(x, y, cellSize / 4, 0, Math.PI * 2);
+  ctx.fillStyle = "#FFD700";
+  ctx.shadowColor = "#FFD700";
+  ctx.shadowBlur = 20;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+function generateMaze(callback) {
+  grid = [];
+  stack = [];
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      grid.push(new Cell(x, y));
+    }
+  }
+
+  current = grid[0];
+
+  function loop() {
+    current.visited = true;
+    const next = current.checkNeighbors();
+
+    if (next) {
+      next.visited = true;
+      stack.push(current);
+      removeWalls(current, next);
+      current = next;
+    } else if (stack.length > 0) {
+      current = stack.pop();
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    grid.forEach(cell => cell.draw());
+    drawPlayer();
+    drawGoal();
+
+    if (stack.length > 0) {
+      requestAnimationFrame(loop);
+    } else {
+      if (callback) callback();
+    }
+  }
+
+  loop();
+}
+
+function resetGame() {
+  clearInterval(timerInterval);
+  player = { x: 0, y: 0 };
+  gameStarted = false;
+  timerDisplay.innerText = "Time: 0.0s";
+  gameStatus.innerText = "";
+}
+
+// Key Controls
+document.addEventListener("keydown", (e) => {
+  if (!gameStarted) return;
+
+  const currentCell = grid[index(player.x, player.y)];
+  if (e.key === "ArrowUp" && !currentCell.walls[0]) player.y--;
+  if (e.key === "ArrowDown" && !currentCell.walls[2]) player.y++;
+  if (e.key === "ArrowLeft" && !currentCell.walls[3]) player.x--;
+  if (e.key === "ArrowRight" && !currentCell.walls[1]) player.x++;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  grid.forEach(cell => cell.draw());
+  drawPlayer();
+  drawGoal();
+
+  if (player.x === cols - 1 && player.y === rows - 1) {
+    stopTimer();
+    gameStarted = false;
+    restartBtn.disabled = false;
+    gameStatus.innerHTML = "🎉 You reached the goal!";
+  }
+});
+
+// Button Handlers
+startBtn.addEventListener("click", () => {
+  resetGame();
+  generateMaze(() => {
+    gameStarted = true;
+    startTimer();
+    restartBtn.disabled = false;
+  });
+});
+
+restartBtn.addEventListener("click", () => {
+  resetGame();
+  generateMaze(() => {
+    gameStarted = true;
+    startTimer();
+  });
+});
+</script>
+{% endblock %}

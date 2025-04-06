@@ -1,0 +1,136 @@
+{% extends 'core/base2.html' %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #edf2f7;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .container-custom {
+        background: #ffffff;
+        padding: 50px 40px;
+        border-radius: 16px;
+        box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.08);
+        margin-top: 50px;
+    }
+
+    h2 {
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .intro-text {
+        font-size: 1.1rem;
+        color: #6c757d;
+        margin-bottom: 30px;
+    }
+
+    .card-custom {
+        background: linear-gradient(to top left, #ffffff, #f8f9fa);
+        border-radius: 12px;
+        box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.06);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card-custom:hover {
+        transform: translateY(-6px);
+        box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-body {
+        padding: 28px 22px;
+    }
+
+    .card-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #34495e;
+    }
+
+    .card-text {
+        font-size: 1rem;
+        color: #555;
+        line-height: 1.5;
+        margin-bottom: 20px;
+    }
+
+    .btn-custom {
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        padding: 10px 24px;
+        background-color: #2c3e50;
+        color: white;
+        transition: background 0.3s, transform 0.2s;
+    }
+
+    .btn-custom:hover {
+        background-color: #1a252f;
+        transform: scale(1.05);
+    }
+
+    .back-btn {
+        border-radius: 8px;
+        font-weight: 500;
+        padding: 8px 18px;
+    }
+</style>
+
+<div class="container">
+    <a href="{% url 'heal' %}" class="btn btn-outline-dark back-btn">
+        ⬅ Back
+    </a>
+    <div class="container-custom text-center">
+        <h2>🎲 Relaxation & Distraction Games</h2>
+        <p class="intro-text">Take a moment to calm your mind and have fun with these mindful mini-games designed to improve focus and reduce stress.</p>
+
+        <div class="row justify-content-center mt-4">
+            <!-- Memory Game -->
+            <div class="col-md-5 col-lg-4 mb-4">
+                <div class="card card-custom h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Memory Cards</h5>
+                        <p class="card-text">Flip and match pairs to challenge your brain and improve memory recall.</p>
+                        <a href="{% url 'memory_game' %}" class="btn btn-custom">Start</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bubble Pop -->
+            <div class="col-md-5 col-lg-4 mb-4">
+                <div class="card card-custom h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Bubble Pop</h5>
+                        <p class="card-text">Burst colorful bubbles for a quick and satisfying stress-relief experience.</p>
+                        <a href="{% url 'bubble_pop_game' %}" class="btn btn-custom">Play</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Focus Maze -->
+            <div class="col-md-5 col-lg-4 mb-4">
+                <div class="card card-custom h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Focus Maze</h5>
+                        <p class="card-text">Navigate through challenging mazes to enhance patience and focus.</p>
+                        <a href="{% url 'focus_maze' %}" class="btn btn-custom">Play</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Four in a Row -->
+            <div class="col-md-5 col-lg-4 mb-4">
+                <div class="card card-custom h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Four in a Row</h5>
+                        <p class="card-text">A classic connection game to enjoy strategic thinking and friendly competition.</p>
+                        <a href="{% url 'four_in_a_row' %}" class="btn btn-custom">Start</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,273 @@
+{% extends 'core/base2.html' %}
+{% block content %}
+<style>
+  .game-container {
+    max-width: 700px;
+    margin: auto;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .memory-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 80px);
+    grid-gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .card {
+    width: 80px;
+    height: 80px;
+    perspective: 1000px;
+    cursor: pointer;
+  }
+
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+  }
+
+  .card.flipped .card-inner {
+    transform: rotateY(180deg);
+  }
+
+  .card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    backface-visibility: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+  }
+
+  .card-front {
+    background: #cce7f7;
+  }
+
+  .card-back {
+    background: #ffffff;
+    transform: rotateY(180deg);
+    color: #5b8c85;
+  }
+
+  .feedback {
+    margin-top: 20px;
+    font-size: 20px;
+    color: #555;
+    min-height: 30px;
+  }
+
+  .controls {
+    margin-top: 30px;
+  }
+
+  .controls button {
+    padding: 10px 20px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    transition: background 0.3s;
+  }
+
+  .controls button:hover {
+    background-color: #45a049;
+  }
+
+  .result-info {
+    margin-top: 20px;
+    font-size: 16px;
+    color: #444;
+  }
+</style>
+
+<div class="game-container">
+  <h2>Mindful Match</h2>
+  <p class="text-muted">Tap and match the cards at your own pace 🧘</p>
+  <p>🏆 Best Time: <span id="bestTime">{{ best_time|default:'--' }}s</span></p>
+  <p>✨ Best Attempts: <span id="bestAttempts">{{ best_attempts|default:'--' }}</span></p>
+  
+  <div class="memory-grid" id="memoryGrid"></div>
+
+  <div class="feedback" id="feedbackText"></div>
+
+  <div class="result-info">
+    <p>⏱ Time Taken: <span id="timeDisplay">0</span> sec</p>
+    <p>🔁 Attempts: <span id="attemptsDisplay">0</span></p>
+  </div>
+
+  <div class="controls">
+    <button id="startBtn" onclick="startGame()">Start</button>
+    <button id="stopBtn" onclick="stopGame()" disabled>Stop</button>
+  </div>
+  <a href="{% url 'relaxation_games_home' %}" class="btn btn-outline-secondary mb-4 mt-4" style="border-radius: 8px;">
+    ⬅ Back
+  </a>
+</div>
+
+<script>
+    const items = ["💙", "🌸", "🌿", "☀️", "🌈", "🦋", "🌻", "🧘‍♀️"];
+    const affirmations = [
+      "You are calm.",
+      "You are growing.",
+      "Peace surrounds you.",
+      "You shine bright.",
+      "You're enough.",
+      "You are transforming.",
+      "Let happiness bloom.",
+      "Feel the serenity."
+    ];
+  
+    let firstCard = null, secondCard = null;
+    let lock = true; // prevent clicking before start
+    let matchCount = 0, attempts = 0;
+    let startTime = null, timerInterval = null;
+  
+    function buildBoard() {
+      const grid = document.getElementById("memoryGrid");
+      grid.innerHTML = "";
+  
+      let gameItems = [...items, ...items];
+      gameItems.sort(() => Math.random() - 0.5);
+  
+      gameItems.forEach((item) => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+        card.dataset.item = item;
+  
+        card.innerHTML = `
+          <div class="card-inner">
+            <div class="card-front">🧠</div>
+            <div class="card-back">${item}</div>
+          </div>
+        `;
+  
+        card.addEventListener("click", () => {
+          if (!lock) handleCardClick(card);
+        });
+  
+        document.getElementById("memoryGrid").appendChild(card);
+      });
+    }
+  
+    function startGame() {
+      document.getElementById("feedbackText").innerText = "";
+      document.getElementById("timeDisplay").innerText = "0";
+      document.getElementById("attemptsDisplay").innerText = "0";
+  
+      matchCount = 0;
+      attempts = 0;
+      firstCard = null;
+      secondCard = null;
+      lock = false;
+  
+      startTime = new Date();
+      clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 1000);
+  
+      buildBoard();
+  
+      document.getElementById("startBtn").disabled = true;
+      document.getElementById("stopBtn").disabled = false;
+    }
+  
+    function stopGame() {
+      lock = true;
+      clearInterval(timerInterval);
+      document.getElementById("stopBtn").disabled = true;
+      document.getElementById("startBtn").disabled = false;
+    }
+  
+    function updateTimer() {
+      const now = new Date();
+      const diff = Math.floor((now - startTime) / 1000);
+      document.getElementById("timeDisplay").innerText = diff;
+    }
+  
+    function handleCardClick(card) {
+      if (card.classList.contains("flipped")) return;
+  
+      card.classList.add("flipped");
+  
+      if (!firstCard) {
+        firstCard = card;
+      } else {
+        secondCard = card;
+        lock = true;
+        attempts++;
+        document.getElementById("attemptsDisplay").innerText = attempts;
+  
+        if (firstCard.dataset.item === secondCard.dataset.item) {
+          matchCount++;
+          showAffirmation();
+          resetTurn();
+  
+          if (matchCount === items.length) {
+            clearInterval(timerInterval);
+            sendScore();
+          } else {
+            lock = false;
+          }
+        } else {
+          setTimeout(() => {
+            firstCard.classList.remove("flipped");
+            secondCard.classList.remove("flipped");
+            resetTurn();
+            lock = false;
+          }, 1000);
+        }
+      }
+    }
+  
+    function resetTurn() {
+      firstCard = null;
+      secondCard = null;
+    }
+  
+    function showAffirmation() {
+      const msg = affirmations[Math.floor(Math.random() * affirmations.length)];
+      document.getElementById("feedbackText").innerText = msg;
+    }
+  
+    function sendScore() {
+    // Read the time from the display
+        const timeText = document.getElementById("timeDisplay").innerText;
+        const timeInSeconds = parseInt(timeText);
+
+        fetch("{% url 'save_memory_score' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: `score=${matchCount}&time_taken=${timeInSeconds}&attempts=${attempts}`
+        }).then(res => res.json())
+        .then(data => {
+            console.log("Response from server:", data);
+
+            if (data.best_time !== null && data.best_attempts !== null) {
+                document.getElementById("bestTime").innerText = `${data.best_time}s`;
+                document.getElementById("bestAttempts").innerText = data.best_attempts;
+            } else {
+                console.log("No best score found yet");
+            }
+        });
+    }
+
+
+  
+    window.onload = buildBoard;
+  </script>  
+{% endblock %}
