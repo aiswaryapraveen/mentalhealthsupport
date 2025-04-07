@@ -2,8 +2,6 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="text-center">Welcome, {{ user.username }}!</h2>
-    
     {% if not request.user.is_superuser and not request.user.is_professional %}
         <div class="card shadow-sm border-light">
             <div class="card-header bg-teal text-white">
@@ -93,7 +91,7 @@
                         <ul class="list-group">
                             {% for goal in user_goals_previous %}
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span class="{% if goal.completed %}text-success{% endif %}">
+                                    <span class="{% if goal.completed %}text-dark{% endif %}">
                                         {% if goal.goal %}{{ goal.goal.text }}{% else %}{{ goal.text }}{% endif %}
                                     </span>
                                     {% if goal.completed %}
@@ -243,12 +241,12 @@
             /* Section Titles */
             h3, h4 {
                 font-weight: 700;
-                color: #2c3e50;
+                color: #ffffff;
                 text-align: center;
                 margin-bottom: 15px;
             }
             .nav-link {
-                color: #00796b !important;
+                color: #000000 !important;
             }
 
             /* Card Styling for Goals Section */
@@ -258,14 +256,14 @@
 
             .card-header {
                 font-weight: bold;
-                background-color: #00796b;
+                background-color: #000000;
             }
 
             /* Streak Badge */
             .streak-badge {
                 font-size: 18px;
-                background-color: #80deea;
-                color: #00796b;
+                background-color: #414141;
+                color: #ffffff;
                 padding: 5px 10px;
                 border-radius: 20px;
                 display: inline-block;
@@ -277,7 +275,7 @@
             }
 
             .btn-primary {
-                background-color: #00796b;
+                background-color: #000000;
                 color: white;
                 border: none;
             }
@@ -297,7 +295,7 @@
 
             /* Progress Bars */
             .progress-bar {
-                background-color: #00796b;
+                background-color: #157931;
             }
         </style>
     </div>

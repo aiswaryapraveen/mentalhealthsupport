@@ -1,0 +1,46 @@
+{% extends 'core/base2.html' %}
+{% block content %}
+
+<div class="container">
+    <h2 class="text-center my-4">🧘 Manage Yoga Sessions</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="text-end mb-3">
+        <a href="{% url 'add_yoga_session' %}" class="btn btn-success">➕ Add New Yoga</a>
+    </div>
+
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Duration</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for session in sessions %}
+            <tr>
+                <td>{{ session.title }}</td>
+                <td>{{ session.description|truncatewords:10 }}</td>
+                <td>{{ session.duration }}</td>
+                <td>
+                    <a href="{% url 'edit_yoga_session' session.id %}" class="btn btn-warning btn-sm">✏ Edit</a>
+                    <a href="{% url 'delete_yoga_session' session.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">🗑 Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">No yoga sessions available.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Meditation, UserMeditation
+from .models import Meditation, UserMeditation, YogaSession
 
 @admin.register(Meditation)
 class MeditationAdmin(admin.ModelAdmin):
@@ -11,3 +11,8 @@ class MeditationAdmin(admin.ModelAdmin):
 class UserMeditationAdmin(admin.ModelAdmin):
     list_display = ('user', 'meditation', 'completed_at')  # Show these fields
     search_fields = ('user__username', 'meditation__title')  # Search by user or meditation title
+
+@admin.register(YogaSession)
+class YogaSessionAdmin(admin.ModelAdmin):
+    list_display = ('title', 'duration', 'video_url')
+    search_fields = ('title', 'description')

@@ -279,9 +279,14 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from core.models import JournalEntry , DailyGoal, PersonalGoal # Import models to get goal and journal data
 from datetime import timedelta
-from suggestions.models import SelfAffirmation, UserMeditation
+from suggestions.models import SelfAffirmation, UserMeditation, YogaCompletion
 from django.utils.timezone import now
 from .models import CustomUser, Professional1, ProfessionalDetails, ProfessionalReview
+from collections import defaultdict
+from datetime import timedelta, date
+from itertools import groupby
+from operator import attrgetter
+from itertools import groupby
 
 @login_required
 def profile_view(request):
@@ -294,21 +299,42 @@ def profile_view(request):
     total_goals_count = personal_goals.count()
     goaltotal = completed_goals_count + total_goals_count
 
-    # Streak logic
-    streak = 0
+    # Streak logic for goals
+    goal_streak = 0
     last_completed_date = None
     for daily_goal in daily_goals.order_by('-date'):
         if last_completed_date is None or daily_goal.date == last_completed_date - timedelta(days=1):
-            streak += 1
+            goal_streak += 1
             last_completed_date = daily_goal.date
         else:
             break
 
-    # Fetch all affirmations (each with 3 fields already)
+    # Fetch all affirmations
     affirmations = SelfAffirmation.objects.filter(user=user).order_by('-date')
 
     # Fetch completed meditations
-    completed_meditations = UserMeditation.objects.filter(user=user)
+    completed_meditations = UserMeditation.objects.filter(user=user).order_by('-completed_at')
+
+    # Meditation streak logic
+    meditation_dates_set = set(m.completed_at.date() for m in completed_meditations)
+    today = date.today()
+    past_30_days = [today - timedelta(days=i) for i in range(30)]
+
+    meditation_streak = 0
+    for d in past_30_days:
+        if d in meditation_dates_set:
+            meditation_streak += 1
+        else:
+            break
+
+    # Group meditation sessions by date
+    grouped_meditations = {}
+    for d, items in groupby(completed_meditations, key=lambda x: x.completed_at.date()):
+        grouped_meditations[d] = list(items)
+
+    # Meditation calendar data
+    meditation_calendar_data = {d: (d in meditation_dates_set) for d in reversed(past_30_days)}
+
     # For professionals only
     professional_data = None
     professional_details = None
@@ -318,22 +344,51 @@ def profile_view(request):
             professional_details = ProfessionalDetails.objects.filter(professional=professional_data).first()
         except Professional1.DoesNotExist:
             pass
-    # Inside the profile_view function
+
+    # Fetch reviews if professional
     reviews = None
     if user.is_professional and professional_data:
         reviews = ProfessionalReview.objects.filter(professional=professional_data).select_related('user')
+
+    # Fetch completed yoga sessions
+    yoga_completions = YogaCompletion.objects.filter(user=user).select_related('session').order_by('-completed_at')
+
+    # Group yoga sessions by completed date
+    grouped_yoga_sessions = {}
+    for d, items in groupby(yoga_completions, key=lambda x: x.completed_at.date()):
+        grouped_yoga_sessions[d] = list(items)
+
+    # Yoga streak and calendar data
+    yoga_dates_set = set(y.completed_at.date() for y in yoga_completions)
+    yoga_streak = 0
+    for d in past_30_days:
+        if d in yoga_dates_set:
+            yoga_streak += 1
+        else:
+            break
+
+    yoga_calendar_data = {d: (d in yoga_dates_set) for d in reversed(past_30_days)}
+    day_labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
     return render(request, 'users/profile.html', {
         'user': user,
         'completed_goals_count': completed_goals_count,
         'goaltotal': goaltotal,
-        'streak': streak,
+        'streak': goal_streak,
         'affirmations': affirmations,
         'completed_meditations': completed_meditations,
+        'meditation_streak': meditation_streak,
+        'grouped_meditations': grouped_meditations,
+        'meditation_calendar_data': meditation_calendar_data,
         'professional_data': professional_data,
         'professional_details': professional_details,
-        'reviews':reviews,
+        'reviews': reviews,
+        'yoga_streak': yoga_streak,
+        'yoga_calendar_data': yoga_calendar_data,
+        'grouped_yoga_sessions': grouped_yoga_sessions,
+        'day_labels': day_labels,
     })
+
 
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect

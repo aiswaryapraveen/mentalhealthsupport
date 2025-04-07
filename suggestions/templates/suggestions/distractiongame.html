@@ -1,6 +1,9 @@
 {% extends 'core/base2.html' %}
 
 {% block content %}
+<a href="{% url 'heal' %}" class="btn btn-outline-dark" style="border-radius: 8px;">
+    ⬅ Back
+</a>
 <div class="game-container">
     {% if scene %}
         <h1 class="scene-title">{{ scene.title }}</h1>

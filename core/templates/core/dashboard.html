@@ -186,81 +186,377 @@
             
     {% endif %}
 
+<!-- Admin Dashboard -->
+{% if user.is_superuser %}
+<div class="admin-dashboard mt-5">
+    <h3 class="text-center text-danger fw-bold">⚡ Admin Dashboard</h3>
 
-    <!-- Admin Dashboard -->
-    {% if user.is_superuser %}
-    <div class="admin-dashboard mt-5">
-        <h3 class="text-center text-danger fw-bold">⚡ Admin Dashboard</h3>
-
-        <!-- Admin Statistics -->
-        <div class="row text-center mt-4">
-            <div class="col-md-4">
-                <div class="card shadow-lg border-0 admin-stat-card bg-light">
-                    <div class="card-body">
-                        <h5 class="card-title fw-bold text-primary">👥 Total Users</h5>
-                        <p class="fw-bold display-6 count" data-count="{{ total_users }}">0</p>
-                    </div>
+    <!-- Admin Statistics -->
+    <div class="row text-center mt-4">
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 admin-stat-card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-primary">👥 Total Users</h5>
+                    <p class="fw-bold display-6 count" data-count="{{ total_users }}">0</p>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card shadow-lg border-0 admin-stat-card bg-light">
-                    <div class="card-body">
-                        <h5 class="card-title fw-bold text-success">🎓 Professionals</h5>
-                        <p class="fw-bold display-6 count" data-count="{{ total_professionals }}">0</p>
-                    </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 admin-stat-card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-success">🎓 Professionals</h5>
+                    <p class="fw-bold display-6 count" data-count="{{ total_professionals }}">0</p>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card shadow-lg border-0 admin-stat-card bg-light">
-                    <div class="card-body">
-                        <h5 class="card-title fw-bold text-warning">⏳ Pending Approvals</h5>
-                        <p class="fw-bold display-6 count" data-count="{{ pending_approvals }}">0</p>
-                    </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 admin-stat-card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-warning">⏳ Pending Approvals</h5>
+                    <p class="fw-bold display-6 count" data-count="{{ pending_approvals }}">0</p>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Admin Styling -->
-    <style>
-        .admin-stat-card {
-            transition: transform 0.3s ease-in-out;
-            border-radius: 12px;
-        }
-        .admin-stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-        }
-    </style>
-
-    <!-- Animated Counter -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            document.querySelectorAll(".count").forEach(counter => {
-                let countTo = parseInt(counter.getAttribute("data-count"));
-                let count = 0;
-                let speed = Math.ceil(countTo / 50); 
-
-                let updateCount = setInterval(() => {
-                    count += speed;
-                    if (count >= countTo) {
-                        counter.textContent = countTo;
-                        clearInterval(updateCount);
-                    } else {
-                        counter.textContent = count;
-                    }
-                }, 30);
-            });
-        });
-    </script>
-    {% endif %}
-
-    <!-- Professional Dashboard -->
-    {% if user.is_professional %}
-    <div class="alert alert-info mt-4 text-center fw-bold">
-        🎓 Mentor-Session Dashboard
+<div class="row mt-5">
+    <!-- Chart: User Signups -->
+    <div class="col-md-6 mb-4">
+        <h5 class="text-center fw-bold text-primary">📈 User Signups per Month</h5>
+        <canvas id="signupChart"></canvas>
     </div>
-    {% endif %}
+
+    <!-- Chart: Journal Entries -->
+    <div class="col-md-6 mb-4">
+        <h5 class="text-center fw-bold text-success">📘 Journal Entries per Week</h5>
+        <canvas id="journalChart"></canvas>
+    </div>
+
+    <!-- Chart: Meditation/Yoga Usage -->
+    <div class="col-md-12">
+        <h5 class="text-center fw-bold text-warning">🧘 Meditation/Yoga Usage Trends</h5>
+        <canvas id="medYogaChart"></canvas>
+    </div>
+</div>
+
+<!-- Admin Styling -->
+<style>
+    .admin-dashboard {
+        background-color: #f9f9f9;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .admin-stat-card {
+        transition: transform 0.3s ease-in-out;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .admin-stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-title {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
+
+    .count {
+        font-size: 2.5rem;
+        color: #333;
+    }
+
+    .card-body {
+        padding: 30px;
+    }
+
+    .row.mt-5 {
+        margin-top: 40px;
+    }
+
+    .text-center {
+        font-weight: 600;
+    }
+
+    h5 {
+        font-size: 1.25rem;
+        margin-bottom: 20px;
+    }
+    
+    .fw-bold {
+        font-weight: bold;
+    }
+
+    /* Charts Styling */
+    canvas {
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* Responsiveness */
+    @media (max-width: 767px) {
+        .col-md-4, .col-md-6, .col-md-12 {
+            margin-bottom: 20px;
+        }
+    }
+</style>
+
+<!-- Animated Counter -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".count").forEach(counter => {
+            let countTo = parseInt(counter.getAttribute("data-count"));
+            let count = 0;
+            let speed = Math.ceil(countTo / 50); 
+
+            let updateCount = setInterval(() => {
+                count += speed;
+                if (count >= countTo) {
+                    counter.textContent = countTo;
+                    clearInterval(updateCount);
+                } else {
+                    counter.textContent = count;
+                }
+            }, 30);
+        });
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const userSignupData = {{ user_login_data|safe }};
+    const journalEntryData = {{ journal_entry_data|safe }};
+    const medYogaData = {{ meditation_yoga_data|safe }};
+    
+    // 📈 User Signups Chart
+    const ctx1 = document.getElementById('signupChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: userSignupData.map(d => d.week),
+            datasets: [{
+                label: 'User Logins',
+                data: userSignupData.map(d => d.count),
+                backgroundColor: '#0d6efd',
+            }]
+        },
+    });
+
+    // 📘 Journal Entries Chart
+    const ctx2 = document.getElementById('journalChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'line',
+        data: {
+            labels: journalEntryData.map(d => d.week),
+            datasets: [{
+                label: 'Journal Entries',
+                data: journalEntryData.map(d => d.count),
+                borderColor: '#198754',
+                fill: false,
+            }]
+        },
+    });
+
+    // 🧘 Meditation/Yoga Chart
+    const ctx3 = document.getElementById('medYogaChart').getContext('2d');
+    new Chart(ctx3, {
+        type: 'line',
+        data: {
+            labels: medYogaData.map(d => d.week),
+            datasets: [
+                {
+                    label: 'Meditation',
+                    data: medYogaData.map(d => d.meditation),
+                    borderColor: '#0dcaf0',
+                    fill: false,
+                },
+                {
+                    label: 'Yoga',
+                    data: medYogaData.map(d => d.yoga),
+                    borderColor: '#ffc107',
+                    fill: false,
+                }
+            ]
+        },
+    });
+</script>
+
+{% endif %}
+{% if user.is_professional %}
+<div class="mentor-dashboard mt-5">
+    <h3 class="text-center text-success fw-bold">🎓 Mentor Dashboard</h3>
+
+    <!-- Mentor Stats -->
+    <div class="row text-center mt-4">
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 mentor-stat-card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-primary">📅 Total Bookings</h5>
+                    <p class="fw-bold display-6 count" data-count="{{ bookings|length }}">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 mentor-stat-card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-warning">⭐ Average Rating</h5>
+                    <p class="fw-bold display-6">{{ avg_rating }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 mentor-stat-card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-danger">💬 Total Reviews</h5>
+                    <p class="fw-bold display-6 count" data-count="{{ review_list|length }}">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="upcoming-bookings mt-5">
+        <h4 class="text-primary fw-bold text-center mb-4">📅 Upcoming Appointments</h4>
+        
+        {% if upcoming_bookings %}
+            <div class="row">
+                {% for booking in upcoming_bookings %}
+                <div class="col-md-6 mb-3">
+                    <div class="card shadow border-0 rounded-4">
+                        <div class="card-body">
+                            <h5 class="card-title text-dark fw-bold">{{ booking.user.get_full_name }}</h5>
+
+                            <p class="card-text mb-1">
+                                <strong>Date:</strong> {{ booking.availability.date }}
+                            </p>
+                            
+                            <p class="card-text mb-1">
+                                <strong>Time:</strong> 
+                                {{ booking.availability.start_time|time:"h:i A" }} - 
+                                {{ booking.availability.end_time|time:"h:i A" }}
+                            </p>
+                            
+                            <p class="card-text">
+                                <strong>Status:</strong> 
+                                {% if booking.status == 'Confirmed' %}
+                                    <span class="badge bg-success">Confirmed</span>
+                                {% elif booking.status == 'Pending' %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ booking.status }}</span>
+                                {% endif %}
+                            </p>
+                            
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center text-muted">No upcoming bookings found.</p>
+        {% endif %}
+    </div>
+
+    <!-- Review Section -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h5 class="text-center fw-bold text-secondary">📋 Recent Reviews</h5>
+            <div class="list-group">
+                {% for review in review_list %}
+                    <div class="list-group-item shadow-sm mb-2 rounded">
+                        <strong>{{ review.user.username }}</strong> rated 
+                        <span class="text-warning">{{ review.rating }} ⭐</span><br>
+                        <em class="text-muted">{{ review.created_at|date:"M d, Y H:i" }}</em>
+                        <p class="mt-2 mb-0">{{ review.comment }}</p>
+                    </div>
+                {% empty %}
+                    <div class="text-center text-muted">No reviews yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Mentor Dashboard Styling -->
+<style>
+    .upcoming-bookings .card {
+    transition: transform 0.3s ease;
+    background-color: #fefefe;
+}
+
+.upcoming-bookings .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+    .mentor-dashboard {
+        background-color: #f8fdfc;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .mentor-stat-card {
+        transition: transform 0.3s ease-in-out;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .mentor-stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-title {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
+
+    .count {
+        font-size: 2.5rem;
+        color: #333;
+    }
+
+    .card-body {
+        padding: 30px;
+    }
+
+    .list-group-item {
+        background-color: #fff;
+        padding: 20px;
+    }
+
+    @media (max-width: 767px) {
+        .col-md-4, .col-md-12 {
+            margin-bottom: 20px;
+        }
+    }
+</style>
+
+<!-- Animated Counter -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".count").forEach(counter => {
+            let countTo = parseInt(counter.getAttribute("data-count"));
+            let count = 0;
+            let speed = Math.ceil(countTo / 50);
+
+            let updateCount = setInterval(() => {
+                count += speed;
+                if (count >= countTo) {
+                    counter.textContent = countTo;
+                    clearInterval(updateCount);
+                } else {
+                    counter.textContent = count;
+                }
+            }, 30);
+        });
+    });
+</script>
+{% endif %}
+
+
 </div>
 
 <!-- Additional Styling -->

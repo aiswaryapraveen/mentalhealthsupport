@@ -25,4 +25,11 @@ urlpatterns = [
     path('focus-maze/', views.focus_maze, name='focus_maze'),
     path('save-focus-maze-score/', views.save_focus_maze_score, name='save_focus_maze_score'),
     path('four-in-a-row/', views.four_in_a_row_view, name='four_in_a_row'),
+    path('yoga/', views.yoga, name='yoga_home'),
+    path('yoga/complete/<int:session_id>/', views.complete_yoga, name='complete_yoga'),
+    path('manage/yoga/', views.manage_yoga_sessions, name='manage_yoga'),
+    path('add/yoga/', views.add_yoga_session, name='add_yoga_session'),
+    path('edit/yoga/<int:session_id>/', views.edit_yoga_session, name='edit_yoga_session'),
+    path('delete/yoga/<int:session_id>/', views.delete_yoga_session, name='delete_yoga_session'),
+
 ]

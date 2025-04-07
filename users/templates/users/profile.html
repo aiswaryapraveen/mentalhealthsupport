@@ -60,42 +60,70 @@
             <p class="text-muted">No affirmations yet. Start uplifting your day with some self-love! 💖</p>
         {% endif %}
     </div>
+    <div class="d-flex flex-wrap gap-4 justify-content-center">
 
-    <!-- Meditation Section -->
-    <div class="mb-5">
-        <h4 class="mb-3"><i class="fas fa-spa text-info"></i> Your Calm Corners – Meditation History</h4>
-        {% if completed_meditations %}
-            <div class="accordion" id="meditationAccordion">
-                {% for session in completed_meditations %}
-                    <div class="accordion-item mb-2 border-0 shadow-sm rounded-4 overflow-hidden">
-                        <h2 class="accordion-header" id="meditationHeading{{ forloop.counter }}">
-                            <button class="accordion-button collapsed bg-white fw-semibold" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#meditationCollapse{{ forloop.counter }}"
-                                    aria-expanded="false" aria-controls="meditationCollapse{{ forloop.counter }}">
-                                    🌿 {{ session.meditation.title|default:"Untitled Session" }}
-                            </button>
-                        </h2>
-                        <div id="meditationCollapse{{ forloop.counter }}" class="accordion-collapse collapse"
-                             aria-labelledby="meditationHeading{{ forloop.counter }}" data-bs-parent="#meditationAccordion">
-                            <div class="accordion-body bg-light">
-                                <p><strong>🧘 Title:</strong> {{ session.meditation.title }}</p>
-                                <p><strong>⏱ Duration:</strong> {{ session.meditation.duration }} minutes</p>
-                                <a href="{% url 'meditation_list' %}" class="btn btn-sm btn-outline-info mt-2">
-                                    🌈 Go to Meditations
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p class="text-muted">You haven’t completed any meditations yet. Try one today! 🧘‍♀️</p>
-            <a href="{% url 'meditation_list' %}" class="btn btn-outline-info mt-2">
-                🧘 Explore Meditations
-            </a>
-        {% endif %}
+        <!-- Meditation Calendar Block -->
+<div class="text-center border rounded-4 p-4 shadow-sm bg-white" style="min-width: 300px; max-width: 360px;">
+    <h5 class="mb-3 fw-bold text-info"><i class="fas fa-brain me-2 text-info"></i>Meditation Journal</h5>
+    <p class="fw-semibold text-info mb-3">
+      🧘‍♀️ <span class="text-dark">Meditation Streak:</span>
+      <span class="fs-5">{{ meditation_streak }} days</span>
+    </p>
+  
+    <!-- Weekday Labels -->
+    <div class="d-flex justify-content-center gap-1 mb-2">
+      {% for day in day_labels %}
+        <div style="width: 32px; text-align: center; font-size: 13px; font-weight: 600; color: #6c757d;">
+          {{ day }}
+        </div>
+      {% endfor %}
     </div>
-    
+  
+    <!-- Calendar Grid -->
+    <div class="calendar-grid mb-2 mx-auto"
+         style="display: grid; grid-template-columns: repeat(7, 32px); gap: 8px; justify-content: center;">
+      {% for day, completed in meditation_calendar_data.items %}
+        <div class="rounded-circle shadow-sm border text-dark"
+             style="width: 32px; height: 32px; background-color: {% if completed %}#17a2b8{% else %}#e9ecef{% endif %}; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #fff;"
+             title="{{ day|date:'M d, Y' }}">
+          {{ day.day }}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  
+      
+        <!-- Yoga Calendar Block -->
+        <div class="text-center border rounded-4 p-4 shadow-sm bg-white" style="min-width: 300px; max-width: 360px;">
+          <h5 class="mb-3 fw-bold text-warning"><i class="fas fa-child me-2 text-warning"></i>Flexibility Journal</h5>
+          <p class="fw-semibold text-success mb-3">
+            🔥 <span class="text-dark">Yoga Streak:</span>
+            <span class="fs-5">{{ yoga_streak }} days</span>
+          </p>
+      
+          <!-- Weekday Labels -->
+          <div class="d-flex justify-content-center gap-1 mb-2">
+            {% for day in day_labels %}
+              <div style="width: 32px; text-align: center; font-size: 13px; font-weight: 600; color: #6c757d;">{{ day }}</div>
+            {% endfor %}
+          </div>
+      
+          <!-- Calendar Grid -->
+          <div class="calendar-grid mb-2 mx-auto"
+               style="display: grid; grid-template-columns: repeat(7, 32px); gap: 8px; justify-content: center;">
+            {% for day, completed in yoga_calendar_data.items %}
+              <div class="rounded-circle shadow-sm border"
+                   style="width: 32px; height: 32px; background-color: {% if completed %}#ffc107{% else %}#e9ecef{% endif %}; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #333;"
+                   title="{{ day|date:'M d, Y' }}">
+                {{ day.day }}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      
+      </div>
+      
+      
     {% else %}
     <!-- Professional Profile Section -->
     <div class="text-center mb-5">

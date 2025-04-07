@@ -153,12 +153,78 @@ def goals_view(request):
     })
 from django.utils import timezone
 from datetime import datetime
+from core.models import JournalEntry
+from suggestions.models import UserMeditation, YogaCompletion, YogaSession
+from users.models import CustomUser, ProfessionalReview
+from django.db.models.functions import TruncMonth, TruncWeek
+from django.db.models import Count, Avg
 @login_required
 def dashboard(request):
     total_users = CustomUser.objects.count() if request.user.is_superuser else None
     total_professionals = CustomUser.objects.filter(is_professional=True).count() if request.user.is_superuser else None
     pending_approvals = Professional1.objects.filter(is_approved=False).count() if request.user.is_superuser else 0
     bookings = Booking.objects.filter(user=request.user, status='Confirmed')
+    avg_rating = None
+    review_list = []
+    total_bookings = 0  # Default value
+
+        # Insights for Professionals
+    if request.user.is_professional:
+        try:
+            professional_profile = Professional1.objects.get(user=request.user)
+                        # Get upcoming bookings (next 5)
+            upcoming_bookings = Booking.objects.filter(
+                professional=professional_profile,
+                availability__date__gte=timezone.localdate()
+            ).order_by('availability__date', 'availability__start_time')[:5]
+            bookings = Booking.objects.filter(professional=professional_profile, status='Confirmed')
+            total_bookings = bookings.count()
+            review_list = ProfessionalReview.objects.filter(professional=professional_profile).order_by('-created_at')
+            avg_rating = review_list.aggregate(avg=Avg('rating'))['avg']
+            avg_rating = round(avg_rating, 1) if avg_rating else "No ratings yet"
+        except Professional1.DoesNotExist:
+            review_list = []
+            avg_rating = "Not available"
+            # Get the professional instance
+        
+    # Admin chart data
+    user_login_data = []
+    journal_entry_data = []
+    meditation_yoga_data = []
+
+    if request.user.is_superuser:
+        # 📈 User Signups per Month
+        # 📅 User Logins per Week
+        user_login_qs = CustomUser.objects.filter(last_login__isnull=False).annotate(week=TruncWeek("last_login")) \
+            .values("week").annotate(count=Count("id")).order_by("week")
+        user_login_data = [{"week": u["week"].strftime("%Y-%m-%d"), "count": u["count"]} for u in user_login_qs]
+
+        # 📘 Journal Entries per Week
+        journal_entry_qs = JournalEntry.objects.annotate(week=TruncWeek("created_at")) \
+            .values("week").annotate(count=Count("id")).order_by("week")
+        journal_entry_data = [{"week": j["week"].strftime("%Y-%m-%d"), "count": j["count"]} for j in journal_entry_qs]
+
+                # 🧘 Meditation/Yoga Usage Trends (combined)
+        meditation_qs = UserMeditation.objects.annotate(week=TruncWeek("completed_at")) \
+            .values("week").annotate(count=Count("id")).order_by("week")
+
+        yoga_qs = YogaCompletion.objects.annotate(week=TruncWeek("completed_at")) \
+            .values("week").annotate(count=Count("id")).order_by("week")
+
+
+                # Merge data by week
+        week_data = {}
+        for m in meditation_qs:
+            week_data[m["week"]] = {"week": m["week"].strftime("%Y-%m-%d"), "meditation": m["count"], "yoga": 0}
+        for y in yoga_qs:
+            key = y["week"]
+            if key in week_data:
+                week_data[key]["yoga"] = y["count"]
+            else:
+                week_data[key] = {"week": key.strftime("%Y-%m-%d"), "meditation": 0, "yoga": y["count"]}
+
+        meditation_yoga_data = list(week_data.values())
+
     for booking in bookings:
             availability = booking.availability
 
@@ -224,6 +290,13 @@ def dashboard(request):
         "total_professionals": total_professionals or 0,
         "pending_approvals": pending_approvals or 0,
         'bookings': bookings,
+        "user_login_data": user_login_data,
+        "journal_entry_data": journal_entry_data,
+        "meditation_yoga_data": meditation_yoga_data,
+        "total_bookings": total_bookings,
+        "avg_rating": avg_rating,
+        "review_list":review_list,
+        "upcoming_bookings": upcoming_bookings if request.user.is_professional else None,
     })
 
 def calculate_combined_streak(user):
@@ -362,7 +435,8 @@ SUGGESTIONS_BY_STATUS = {
             ("Talk to Someone", "/community/"),
             ("Book a Session", "/booking/"),
             ("Write Self-Affirmations", "/suggestions/self-affirmation/1/"),
-            ("Try Guided Meditation", "/suggestions/meditation/")
+            ("Try Guided Meditation", "/suggestions/meditation/"),
+            ("Play a Distraction Game", "/suggestions/relaxation-games/")
         ],
         "helplines": [
             {
@@ -390,8 +464,9 @@ SUGGESTIONS_BY_STATUS = {
         "suggestions": [
             ("Listen to Uplifting Meditation", "/suggestions/meditation/"),
             ("Write Self-Affirmations", "/suggestions/self-affirmation/1/"),
-            ("Play a Light Game", "/suggestions/game/1/"),
-            ("Try Gentle Breathing", "/suggestions/breathing-exercises/")
+            ("Play Bubble Pop", "/suggestions/bubble-pop/"),
+            ("Try Gentle Breathing", "/suggestions/breathing-exercises/"),
+            ("Stretch or Do Yoga", "/suggestions/yoga/")
         ]
     },
 
@@ -399,17 +474,19 @@ SUGGESTIONS_BY_STATUS = {
         "suggestions": [
             ("Do Deep Breathing", "/suggestions/breathing-exercises/"),
             ("Try Grounding Meditation", "/suggestions/meditation/"),
-            ("Stretch or Do Yoga", "/dashboard/"),
-            ("Vent Anonymously", "/community/")
+            ("Stretch or Do Yoga", "/suggestions/yoga/"),
+            ("Vent Anonymously", "/community/"),
+            ("Play Focus Maze", "/suggestions/focus-maze/")
         ]
     },
 
     "stress": {
         "suggestions": [
             ("Try Breathing Exercise", "/suggestions/breathing-exercises/"),
-            ("Play a Stress-Relief Game", "/suggestions/game/1/"),
+            ("Play Memory Game", "/suggestions/memory-game/"),
             ("Take a Meditation Break", "/suggestions/meditation/"),
-            ("Talk to the Community", "/community/")
+            ("Talk to the Community", "/community/"),
+            ("Do a Yoga Flow", "/suggestions/yoga/")
         ]
     },
 
@@ -418,6 +495,7 @@ SUGGESTIONS_BY_STATUS = {
             ("Breathe Through the Moment", "/suggestions/breathing-exercises/"),
             ("Guided Meditation for Overwhelm", "/suggestions/meditation/"),
             ("Affirm Your Efforts", "/suggestions/self-affirmation/1/"),
+            ("Play a Relaxation Game", "/suggestions/relaxation-games/"),
             ("Reach Out to Someone", "/community/")
         ]
     },
@@ -426,7 +504,8 @@ SUGGESTIONS_BY_STATUS = {
         "suggestions": [
             ("Set a New Personal Goal", "/goals/"),
             ("Maintain Your Calm with Meditation", "/suggestions/meditation/"),
-            ("Do Light Yoga", "/dashboard/"),
+            ("Do Light Yoga", "/suggestions/yoga/"),
+            ("Play Four in a Row", "/suggestions/four-in-a-row/"),
             ("Encourage Others", "/community/")
         ]
     },
@@ -436,7 +515,8 @@ SUGGESTIONS_BY_STATUS = {
             ("Work Toward a Goal", "/goals/"),
             ("Inspire Others", "/community/"),
             ("Reflect with Affirmations", "/suggestions/self-affirmation/1/"),
-            ("Channel Your Hope with Meditation", "/suggestions/meditation/")
+            ("Channel Your Hope with Meditation", "/suggestions/meditation/"),
+            ("Stretch and Move with Yoga", "/suggestions/yoga/")
         ]
     },
 
@@ -445,7 +525,8 @@ SUGGESTIONS_BY_STATUS = {
             ("Celebrate a Goal", "/goals/"),
             ("Motivate Someone", "/community/"),
             ("Reflect on Positivity", "/suggestions/self-affirmation/1/"),
-            ("Share Joy", "/community/")
+            ("Share Joy", "/community/"),
+            ("Play a Fun Game", "/suggestions/four-in-a-row/")
         ]
     }
 }

@@ -1,0 +1,17 @@
+{% extends 'core/base2.html' %}
+{% block content %}
+
+<div class="container">
+    <h2 class="text-center my-4">{{ action }} Yoga Session</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="text-end">
+            <button type="submit" class="btn btn-primary">💾 Save</button>
+            <a href="{% url 'manage_yoga' %}" class="btn btn-secondary">⬅ Back</a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

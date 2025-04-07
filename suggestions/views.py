@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .models import SelfAffirmation
 from django.contrib.auth.decorators import user_passes_test
-from .forms import MeditationForm
+from .forms import MeditationForm, YogaSessionForm
 
 from django.utils import timezone
 from django.shortcuts import render, redirect
@@ -256,6 +256,51 @@ def delete_meditation(request, meditation_id):
     meditation.delete()
     messages.success(request, "Meditation deleted successfully!")
     return redirect('manage_meditations')
+# Helper function to check if user is an admin or a professional
+def can_manage_yoga(user):
+    return user.is_staff or getattr(user, 'is_professional', False)
+
+# Admin/Professional Panel to Manage Yoga Sessions
+@user_passes_test(can_manage_yoga)
+def manage_yoga_sessions(request):
+    sessions = YogaSession.objects.all()
+    return render(request, 'users/manage_yoga.html', {'sessions': sessions})
+
+# Add New Yoga Session
+@user_passes_test(can_manage_yoga)
+def add_yoga_session(request):
+    if request.method == 'POST':
+        form = YogaSessionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Yoga session added successfully!")
+            return redirect('manage_yoga')
+    else:
+        form = YogaSessionForm()
+    return render(request, 'users/add_edit_yoga.html', {'form': form, 'action': 'Add'})
+
+# Edit Yoga Session
+@user_passes_test(can_manage_yoga)
+def edit_yoga_session(request, session_id):
+    session = get_object_or_404(YogaSession, id=session_id)
+    if request.method == 'POST':
+        form = YogaSessionForm(request.POST, instance=session)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Yoga session updated successfully!")
+            return redirect('manage_yoga')
+    else:
+        form = YogaSessionForm(instance=session)
+    return render(request, 'users/add_edit_yoga.html', {'form': form, 'action': 'Edit'})
+
+# Delete Yoga Session
+@user_passes_test(can_manage_yoga)
+def delete_yoga_session(request, session_id):
+    session = get_object_or_404(YogaSession, id=session_id)
+    session.delete()
+    messages.success(request, "Yoga session deleted successfully!")
+    return redirect('manage_yoga')
+
 @login_required
 def relaxation_games_home(request):
     return render(request, 'suggestions/relaxation_games_home.html')
@@ -268,7 +313,7 @@ def bubble_pop_game(request):
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from .models import BubbleGameRecord, MemoryGameScore
+from .models import BubbleGameRecord, MemoryGameScore, YogaSession, YogaCompletion
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from .models import FocusMazeScore
@@ -348,3 +393,22 @@ def save_focus_maze_score(request):
     return JsonResponse({'status': 'error'}, status=400)
 def four_in_a_row_view(request):
     return render(request, 'suggestions/four_in_a_row.html')
+from datetime import date
+
+def yoga(request):
+    sessions = YogaSession.objects.all()
+    today = date.today()
+    user_completed_yoga = YogaCompletion.objects.filter(
+        user=request.user,
+        completed_at__date=today
+    ).values_list('session_id', flat=True)
+    return render(request, 'suggestions/yoga_list.html', {
+        'sessions': sessions,
+        'user_completed_yoga': user_completed_yoga
+    })
+
+@login_required
+def complete_yoga(request, session_id):
+    session = get_object_or_404(YogaSession, id=session_id)
+    YogaCompletion.objects.get_or_create(user=request.user, session=session)
+    return redirect('yoga_home')  # You can customize the redirect as needed

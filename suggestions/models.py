@@ -54,3 +54,18 @@ class FocusMazeScore(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.time_taken}s"
+class YogaSession(models.Model):
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    duration = models.CharField(max_length=20)
+    video_url = models.URLField(blank=True, null=True)  # Optional for embedding
+
+    def __str__(self):
+        return self.title
+class YogaCompletion(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    session = models.ForeignKey(YogaSession, on_delete=models.CASCADE)
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.session.title}"
