@@ -1,18 +1,25 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
-from .forms import SignupForm
+from .forms import SignupForm, ProfessionalRegistrationForm,ProfessionalDetailsForm, ReviewForm,CustomUserForm, Professional1Form, ProfessionalDetailsForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from .forms import ProfessionalRegistrationForm, GoalForm
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from core.models import Goal, PersonalGoal
-from .models import CustomUser, Professional1
+from core.models import Goal, PersonalGoal, Notification, DailyGoal
 from django.contrib.auth.views import PasswordResetView
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib.messages.views import SuccessMessageMixin
 from django.views.decorators.http import require_POST
+from booking.models import Booking, Availability
+import logging
+from django.utils.html import format_html
+from suggestions.models import SelfAffirmation, UserMeditation, YogaCompletion
+from .models import CustomUser, Professional1, ProfessionalDetails, ProfessionalReview
+from datetime import timedelta, date
+from itertools import groupby
+from django.db import transaction
+
 
 @login_required
 @require_POST
@@ -109,9 +116,6 @@ def signup_view(request):
         form = SignupForm()
     return render(request, 'users/signup.html', {'form': form})
 
-from core.models import Notification
-from django.urls import reverse
-from django.utils.html import format_html
 MAX_PROFESSIONALS = 10  # You can move this to settings.py if needed
 @login_required
 def professional_registration(request):
@@ -199,16 +203,6 @@ def delete_user(request, user_id):
     user = get_object_or_404(CustomUser, id=user_id)
     user.delete()
     return JsonResponse({'success': "User deleted successfully!"})
-from booking.models import Booking, Availability
-from django.utils.timezone import now
-from django.urls import reverse
-from django.utils.html import format_html
-from core.models import Notification
-import logging
-
-from django.utils.html import format_html
-from django.urls import reverse
-import logging
 
 logger = logging.getLogger(__name__)  # Debugging logger
 
@@ -275,18 +269,6 @@ class CustomPasswordResetView(SuccessMessageMixin, PasswordResetView):
     subject_template_name = 'users/password_reset_subject.txt'
     success_url = reverse_lazy('password_reset_done')
     success_message = "An email with password reset instructions has been sent to your email."
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from core.models import JournalEntry , DailyGoal, PersonalGoal # Import models to get goal and journal data
-from datetime import timedelta
-from suggestions.models import SelfAffirmation, UserMeditation, YogaCompletion
-from django.utils.timezone import now
-from .models import CustomUser, Professional1, ProfessionalDetails, ProfessionalReview
-from collections import defaultdict
-from datetime import timedelta, date
-from itertools import groupby
-from operator import attrgetter
-from itertools import groupby
 
 @login_required
 def profile_view(request):
@@ -348,7 +330,7 @@ def profile_view(request):
     # Fetch reviews if professional
     reviews = None
     if user.is_professional and professional_data:
-        reviews = ProfessionalReview.objects.filter(professional=professional_data).select_related('user')
+        reviews = ProfessionalReview.objects.filter(professional=professional_data).select_related('user').order_by('-created_at')
 
     # Fetch completed yoga sessions
     yoga_completions = YogaCompletion.objects.filter(user=user).select_related('session').order_by('-completed_at')
@@ -389,17 +371,6 @@ def profile_view(request):
         'day_labels': day_labels,
     })
 
-
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect
-from django.contrib import messages
-
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.shortcuts import redirect
-from users.models import Professional1  # or wherever the model is
-from django.db import transaction
-
 @login_required
 def switch_to_normal_user(request):
     if request.method == 'POST' and request.user.is_professional:
@@ -424,11 +395,6 @@ def switch_to_normal_user(request):
         messages.error(request, "Invalid request.")
 
     return redirect('dashboard')  # or 'profile', as needed
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Professional1
-from .models import ProfessionalDetails
-from .forms import ProfessionalDetailsForm
 
 @login_required
 def update_professional_profile(request):
@@ -459,10 +425,6 @@ def update_professional_profile(request):
         form = ProfessionalDetailsForm(instance=details)
 
     return render(request, 'users/update_professional.html', {'form': form})
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .forms import CustomUserForm, Professional1Form, ProfessionalDetailsForm
-from .models import Professional1, ProfessionalDetails
 
 @login_required
 def settings_view(request):
@@ -502,12 +464,8 @@ def settings_view(request):
         'is_professional': user.is_professional,
     }
     return render(request, 'users/settings.html', context)
-# views.py
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect, render
-from .models import ProfessionalReview
-from .forms import ReviewForm
-from users.models import Professional1
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Avg, Count
 
 @login_required
 def leave_review(request, professional_id):
@@ -522,7 +480,7 @@ def leave_review(request, professional_id):
             review.save()
 
             # Create notification for the professional
-            review_url = reverse('professional_profile', kwargs={'professional_id': professional.id})
+            review_url = reverse('user_profile')
 
             # Notification for the professional about a new review
             Notification.objects.create(
@@ -535,10 +493,40 @@ def leave_review(request, professional_id):
                 notification_type="message"
             )
             return redirect('professional_profile', professional_id=professional.id)
-    else:
-        form = ReviewForm()
+        try:
+            details = professional.details
+            profile_picture = details.profile_picture if details.profile_picture else None
+        except ObjectDoesNotExist:
+            details = None
+            profile_picture = None
 
-    return render(request, 'users/leave_review.html', {'form': form, 'professional': professional})
+        reviews = ProfessionalReview.objects.filter(professional=professional).order_by('-created_at')[:5]
+        rating_avg = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+        review_count = reviews.count()
+        full_stars = int(rating_avg)
+        half_star = 1 if (rating_avg - full_stars) >= 0.25 and (rating_avg - full_stars) < 0.75 else 0
+        empty_stars = 5 - full_stars - half_star
+        notifications = Notification.objects.filter(user=professional.user, is_read=False)
+
+        context = {
+            'professional': professional,
+            'reviews': reviews,
+            'details': details,
+            'profile_picture': profile_picture,
+            'review_form': form,  # <- this has the errors
+            'availability_list': Availability.objects.filter(professional=professional),
+            'review_count': review_count,
+            'rating_avg': round(rating_avg, 1),
+            'full_stars': full_stars,
+            'half_star': half_star,
+            'empty_stars': empty_stars,
+            'notifications': notifications,
+        }
+
+        return render(request, 'booking/professional_profile.html', context)
+
+    # GET request fallback (shouldn't happen normally)
+    return redirect('professional_profile', professional_id=professional.id)
 @login_required
 def delete_review(request, review_id):
     review = get_object_or_404(ProfessionalReview, id=review_id, user=request.user)
@@ -546,3 +534,22 @@ def delete_review(request, review_id):
     review.delete()
     messages.success(request, "Your review was deleted successfully.")
     return redirect('professional_profile', professional_id)
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import update_session_auth_hash
+from django.contrib import messages
+from .forms import CustomChangePasswordForm
+
+@login_required
+def update_password(request):
+    if request.method == 'POST':
+        form = CustomChangePasswordForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            form.save()
+            update_session_auth_hash(request, form.user)  # Important!
+            messages.success(request, 'Password changed successfully!')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = CustomChangePasswordForm(user=request.user)
+
+    return render(request, 'users/change_password_inline.html', {'form': form})

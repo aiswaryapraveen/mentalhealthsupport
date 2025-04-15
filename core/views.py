@@ -167,6 +167,7 @@ def dashboard(request):
     avg_rating = None
     review_list = []
     total_bookings = 0  # Default value
+    upcoming_bookings = []
 
         # Insights for Professionals
     if request.user.is_professional:
@@ -224,20 +225,21 @@ def dashboard(request):
                 week_data[key] = {"week": key.strftime("%Y-%m-%d"), "meditation": 0, "yoga": y["count"]}
 
         meditation_yoga_data = list(week_data.values())
-
-    for booking in bookings:
+    if not request.user.is_superuser and not request.user.is_professional:
+        for booking in bookings:
             availability = booking.availability
-
+            message_sub = "Reminder: "
+            review_sub="write your review"
             # 30 minutes before the start time reminder
             start_datetime = timezone.make_aware(datetime.combine(timezone.localdate(), availability.start_time))
             reminder_time = start_datetime - timedelta(minutes=30)
             print(f"Reminder time: {reminder_time}, Current time: {timezone.now()}")
 
-            existing_notifications = Notification.objects.filter(user=request.user, notification_type="reminder_30min").count()
+            existing_notifications = Notification.objects.filter(user=request.user, notification_type="appointment").count()
             print(f"Existing notifications: {existing_notifications}")
 
             # Send a 30-minute reminder if the current time is greater than or equal to the reminder_time
-            if timezone.now() >= reminder_time and not Notification.objects.filter(user=request.user, notification_type="reminder_30min").exists():
+            if timezone.now() >= reminder_time and not Notification.objects.filter(user=request.user, notification_type="appointment", message__icontains=message_sub).exists():
                 print(f"Creating 30-minute reminder for {booking.professional.user.first_name}")
                 reminder_message = (
                     f"Reminder: Your appointment with {booking.professional.user.first_name} is starting in 30 minutes."
@@ -246,13 +248,15 @@ def dashboard(request):
                 Notification.objects.create(
                     user=request.user,
                     message=reminder_message,
-                    notification_type="reminder_30min"
+                    notification_type="appointment"
                 )
 
             # Check if the booking has ended (i.e., the current time is greater than the end time)
-            if availability.end_time < timezone.now().time() and not booking.status == 'Cancelled':
+            
+            availability_datetime = timezone.make_aware(datetime.combine(availability.date, availability.end_time))
+            if timezone.now() >= availability_datetime and booking.status != 'Cancelled':
                 # Check if the user has not already been notified
-                if not Notification.objects.filter(user=request.user, notification_type="review_reminder").exists():
+                if not Notification.objects.filter(user=request.user, notification_type="appointment", message__icontains=review_sub).exists():
                     # Send reminder to review the professional
                     review_url = reverse('professional_profile', kwargs={'professional_id': booking.professional.id})
                     # Create the notification message with the link
@@ -267,10 +271,10 @@ def dashboard(request):
                     Notification.objects.create(
                         user=request.user,
                         message=formatted_message,
-                        notification_type="review_reminder"
+                        notification_type="appointment"
                     )
                     messages.success(request, "Reminder sent to leave a review for your recent appointment.")
-                    break  # Exit the loop once the notification is sent
+                    break  # Exit the loop once the notification is sent    
     grouped_entries = {}
     if not request.user.is_superuser and not request.user.is_professional:
         if request.method == "POST":
@@ -542,12 +546,50 @@ def analyze_journal_entry(request):
         if journal_text:
             # Get mental health prediction
             prediction = predict_mental_health(journal_text)
-
+            print("Prediction value:", prediction.lower())
             # Get sentiment analysis
             sentiment = analyze_sentiment(journal_text)
 
             # Save the journal entry with prediction and sentiment
             entry = JournalEntry.objects.create(user=request.user, text=journal_text, mental_health_status=prediction, sentiment=sentiment)
+            # 🔍 Check the last 3 days (including today)
+            today = timezone.now().date()
+            concerning_days = 0
+            help_url = reverse('booking_page')
+            help_url1 = reverse('heal')
+            for i in range(3):
+                day = today - timedelta(days=i)
+                daily_entries = JournalEntry.objects.filter(
+                    user=request.user,
+                    created_at__date=day
+                )
+                # Check if any entry on this day is concerning
+                if any(
+                    e.mental_health_status.lower() in ["depressed", "suicidal"] or 
+                    e.sentiment.lower() in ["depressed", "suicidal"]
+                    for e in daily_entries
+                ):
+                    concerning_days += 1
+            # ✅ If 3 consecutive concerning days, create notification (if not already sent today)
+            if concerning_days == 3:
+                print("comcerned")
+                already_notified = Notification.objects.filter(
+                    user=request.user,
+                    message__icontains="you may be feeling",
+                    created_at__date=today
+                ).exists()
+                if not already_notified:
+                    emessage = format_html(
+                        'We\'ve noticed you\'ve been feeling depressed or suicidal for the past few days. '
+                        'You\'re not alone — please consider <a href="{}" style="color: #007bff; text-decoration: underline;">talking to a professional</a> or <a href="{}" style="color: #007bff; text-decoration: underline;">using our self-care resources.</a>',
+                        help_url,
+                        help_url1
+                    )
+                    Notification.objects.create(
+                        user=request.user,
+                        message=emessage,
+                        notification_type="message"
+                    )
 
             entries = JournalEntry.objects.filter(user=request.user).order_by("-created_at")
             grouped_entries = defaultdict(list)

@@ -82,3 +82,16 @@ class ReviewForm(forms.ModelForm):
             'rating': forms.RadioSelect(choices=[(i, '⭐' * i) for i in range(1, 6)]),
             'comment': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Leave your feedback...'}),
         }
+
+from django.contrib.auth.forms import PasswordChangeForm
+
+class CustomChangePasswordForm(PasswordChangeForm):
+    old_password = forms.CharField(
+        label="Current Password", widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    new_password1 = forms.CharField(
+        label="New Password", widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    new_password2 = forms.CharField(
+        label="Confirm New Password", widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )

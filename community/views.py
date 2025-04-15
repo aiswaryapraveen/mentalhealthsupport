@@ -3,6 +3,11 @@ from django.contrib.auth.decorators import login_required
 from .models import Post, Reply
 from .forms import PostForm, ReplyForm
 from django.http import Http404
+from django.urls import reverse
+from django.utils.html import format_html
+from django.contrib.auth import get_user_model
+from django.http import HttpResponse
+from core.models import Notification
 
 
 @login_required
@@ -39,20 +44,18 @@ def delete_post(request, post_id):
         post.delete()
     return redirect('community_feed') 
 
-from django.contrib.auth import get_user_model
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
-from django.contrib.auth.decorators import login_required
-from .models import Post, Reply
-from core.models import Notification
-from .forms import PostForm, ReplyForm
 
 CustomUser = get_user_model()
-
+from django.core.paginator import Paginator
 @login_required
 def community_feed(request):
     posts = Post.objects.all().order_by('-created_at')
     replies = Reply.objects.all().order_by('created_at')
+
+    paginator = Paginator(posts, 10)  # Show 10 posts per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
 
     post_form = PostForm()
     reply_form = ReplyForm()
@@ -153,15 +156,14 @@ def community_feed(request):
         "posts": posts,
         "replies": replies,
         "post_form": post_form,
-        "reply_form": reply_form
+        "reply_form": reply_form,
+        "page_obj": page_obj,
     })
 @login_required
 def notifications_page(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-id')
     return render(request, "core/notifications.html", {"notifications": notifications})
 
-from django.urls import reverse
-from django.utils.html import format_html
 @login_required
 def reply_to_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)

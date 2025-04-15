@@ -1,17 +1,17 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .models import SelfAffirmation
-from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import render, redirect,get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import MeditationForm, YogaSessionForm
-
 from django.utils import timezone
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .models import SelfAffirmation  # adjust import as needed
 from datetime import date
+from django.utils.timezone import now, localdate
+from django.contrib import messages
+from django.http import JsonResponse
+from .models import BubbleGameRecord, MemoryGameScore, YogaSession, YogaCompletion, FocusMazeScore,Meditation, UserMeditation, SelfAffirmation
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.db.models import Min
 @login_required
 def self_affirmation_step(request, step=1):
-    """Handles multi-step self-affirmation questions."""
 
     questions = {
         1: ("What are three best things you've accomplished in the past few days?", "accomplishments"),
@@ -69,8 +69,6 @@ def self_affirmation_step(request, step=1):
 def self_affirmation_complete(request):
     return render(request, "suggestions/self_affirmation_complete.html")
 
-
-from django.shortcuts import render
 
 def breathing_exercises(request):
     return render(request, 'suggestions/breathing_exercises.html')
@@ -153,8 +151,6 @@ STORY = {
         ]
     }
 }
-from django.shortcuts import render
-
 def game(request, scene_id):
     # Retrieve the scene from STORY using scene_id
     current_scene = STORY.get(scene_id)
@@ -173,10 +169,7 @@ def game(request, scene_id):
         'scene': final_scene,
         'choices': final_scene['choices']
     })
-from django.shortcuts import render, get_object_or_404
-from .models import Meditation, UserMeditation
-from django.contrib.auth.decorators import login_required
-from django.utils.timezone import now, localdate
+
 @login_required
 def meditation_list(request):
     meditations = Meditation.objects.all()
@@ -192,7 +185,6 @@ def meditation_list(request):
         'user_completed_meditations': user_completed_meditations
     })
 
-from django.contrib import messages
 @login_required
 def complete_meditation(request, meditation_id):
     meditation = get_object_or_404(Meditation, id=meditation_id)
@@ -311,15 +303,6 @@ def bubble_pop_game(request):
        'high_score': high_score.score if high_score else 0 
     })
 
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from .models import BubbleGameRecord, MemoryGameScore, YogaSession, YogaCompletion
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-from .models import FocusMazeScore
-from django.views.decorators.csrf import csrf_exempt
-import json
-from django.db.models import Min
 @login_required
 def save_bubble_score(request):
     if request.method == "POST":
@@ -393,7 +376,6 @@ def save_focus_maze_score(request):
     return JsonResponse({'status': 'error'}, status=400)
 def four_in_a_row_view(request):
     return render(request, 'suggestions/four_in_a_row.html')
-from datetime import date
 
 def yoga(request):
     sessions = YogaSession.objects.all()

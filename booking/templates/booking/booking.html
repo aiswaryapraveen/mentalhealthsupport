@@ -1,81 +1,172 @@
 {% extends "core/base2.html" %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container my-5">
     <!-- Booking Card -->
-    <div class="card shadow-lg p-4 border-0 rounded-3">
-        <div class="text-center mb-4">
-            <h1 class="display-4 text-dark font-weight-bold" style="font-size: 2.5rem; color: #343a40;">Appointment Booking</h1>
-            <h2 class="text-primary" style="font-size: 2rem;">{{ professional.user.first_name }} {{ professional.user.last_name }}</h2>
-            <p class="text-muted" style="font-size: 1.1rem;"><strong>Specialization:</strong> {{ professional.specialization }}</p>
-            <p class="text-muted" style="font-size: 1.1rem;"><strong>Experience:</strong> {{ professional.experience }} years</p>
-        </div>
-
-        <hr class="my-4">
-
-        <h4 class="text-dark" style="font-size: 1.3rem; font-weight: bold;">Available Time Slots</h4>
-
-        {% if messages %}
-            <div class="alert alert-info mt-3">
-                {% for message in messages %}
-                    <p>{{ message }}</p>
-                {% endfor %}
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <!-- Card Header -->
+        <div class="card-header bg-dark text-white py-4">
+            <div class="text-center">
+                <h1 class="display-5 fw-bold mb-2">Book Your Session</h1>
+                <h2 class="h3 mb-0">{{ professional.user.first_name }} {{ professional.user.last_name }}</h2>
             </div>
-        {% endif %}
+        </div>
+        
+        <!-- Card Body -->
+        <div class="card-body p-5">
+            <!-- Professional Info -->
+            <div class="text-center mb-4">
+                <div class="d-flex justify-content-center gap-4 mb-3">
+                    <span class="badge bg-primary bg-opacity-10 text-primary fs-6 py-2 px-3">
+                        <i class="fas fa-briefcase me-2"></i>{{ professional.specialization }}
+                    </span>
+                    <span class="badge bg-info bg-opacity-10 text-info fs-6 py-2 px-3">
+                        <i class="fas fa-clock me-2"></i>{{ professional.experience }} years experience
+                    </span>
+                </div>
+            </div>
 
-        {% if form %}
-            <form id="bookingForm" method="POST" class="mt-3">
+            {% if messages %}
+            <div class="alert alert-info alert-dismissible fade show rounded-3">
+                {% for message in messages %}
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endif %}
+
+            <!-- Booking Form -->
+            {% if form %}
+            <form id="bookingForm" method="POST" class="mt-4">
                 {% csrf_token %}
 
-                <!-- Date selection -->
+                <!-- Date Selection -->
                 <div class="mb-4">
-                    <label for="id_date" class="form-label text-dark" style="font-weight: 500;">Select Date:</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
-                        <select name="date" id="id_date" class="form-select" style="font-size: 1.1rem;">
-                            <option value="">-- Select Date --</option>
-                            {% for date in form.fields.date.widget.choices %}
-                                <option value="{{ date.0 }}">{{ date.1 }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    <label for="id_date" class="form-label fw-semibold fs-5 mb-3 d-flex align-items-center">
+                        <i class="fas fa-calendar-day text-primary me-2"></i>
+                        Select Date
+                    </label>
+                    <select name="date" id="id_date" class="form-select form-select-lg py-3">
+                        <option value="">-- Choose a date --</option>
+                        {% for date in form.fields.date.widget.choices %}
+                        <option value="{{ date.0 }}">{{ date.1 }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
 
-                <!-- Time Slot selection -->
+                <!-- Time Slot Selection -->
                 <div class="mb-4">
-                    <label for="id_availability_id" class="form-label text-dark" style="font-weight: 500;">Select Time Slot:</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-clock"></i></span>
-                        <select name="availability_id" id="id_availability_id" class="form-control" style="font-size: 1.1rem;">
-                            <option value="">-- Select Time Slot --</option>
-                            {% for slot in available_slots %}
-                                <option value="{{ slot.id }}" data-date="{{ slot.date }}"
-                                    {% if slot.remaining_spots <= 0 %}
-                                        disabled
-                                        title="Fully Booked"
-                                    {% endif %}>
-                                    {{ slot.start_time }} - {{ slot.end_time }} 
-                                    {% if slot.remaining_spots > 0 %}
-                                        ({{ slot.remaining_spots }} spots left)
-                                    {% else %}
-                                        (Fully Booked)
-                                    {% endif %}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    <label for="id_availability_id" class="form-label fw-semibold fs-5 mb-3 d-flex align-items-center">
+                        <i class="fas fa-clock text-primary me-2"></i>
+                        Available Time Slots
+                    </label>
+                    <select name="availability_id" id="id_availability_id" class="form-select form-select-lg py-3">
+                        <option value="">-- Select a time slot --</option>
+                        {% for slot in available_slots %}
+                        <option value="{{ slot.id }}" data-date="{{ slot.date }}"
+                            {% if slot.remaining_spots <= 0 %}disabled{% endif %}>
+                            {{ slot.start_time }} - {{ slot.end_time }}
+                            <span class="float-end">
+                                {% if slot.remaining_spots > 0 %}
+                                <span class="badge bg-success">{{ slot.remaining_spots }} spot{{ slot.remaining_spots|pluralize }} left</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Fully booked</span>
+                                {% endif %}
+                            </span>
+                        </option>
+                        {% endfor %}
+                    </select>
                 </div>
 
-                <!-- Submit button -->
-                <div class="text-center">
-                    <button type="submit" class="btn btn-dark btn-lg mt-3 px-4 py-2" style="font-size: 1.2rem; transition: all 0.3s ease;" id="submitBtn">
-                        📅 Book Appointment
+                <!-- Submit Button -->
+                <div class="text-center mt-5">
+                    <button type="submit" class="btn btn-primary btn-lg px-5 py-3 fw-bold rounded-pill" id="submitBtn">
+                        <i class="fas fa-calendar-check me-2"></i> Confirm Booking
                     </button>
                 </div>
             </form>
-        {% else %}
-            <p class="text-muted text-center mt-4" style="font-size: 1.2rem; font-weight: bold;">No available slots</p>
-        {% endif %}
+            {% else %}
+            <div class="text-center py-4">
+                <div class="alert alert-warning rounded-3 py-4">
+                    <i class="fas fa-calendar-times fa-2x mb-3 text-warning"></i>
+                    <h4 class="fw-bold">No Available Slots</h4>
+                    <p class="mb-0">Please check back later for availability</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
     </div>
 </div>
+
+<style>
+    .card {
+        border: none;
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+    }
+    
+    .form-select {
+        border: 2px solid #e9ecef;
+        transition: all 0.3s;
+    }
+    
+    .form-select:focus {
+        border-color: #2c3e50;
+        box-shadow: 0 0 0 0.25rem rgba(44, 62, 80, 0.25);
+    }
+    
+    .form-select option {
+        padding: 10px 15px;
+    }
+    
+    .form-select option:checked {
+        background-color: #2c3e50;
+        color: white;
+    }
+    
+    .btn-primary {
+        background-color: #2c3e50;
+        border-color: #2c3e50;
+        transition: all 0.3s;
+    }
+    
+    .btn-primary:hover {
+        background-color: #1a252f;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .badge {
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+    
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 2rem;
+        }
+        
+        .btn-lg {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+        }
+    }
+</style>
+
+<script>
+    // This JavaScript remains the same as before
+    document.addEventListener('DOMContentLoaded', function() {
+        // Any existing JavaScript functionality
+    });
+</script>
 {% endblock %}

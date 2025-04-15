@@ -10,53 +10,63 @@
     </div>
 
     <!-- Profile Card -->
-    <div class="card profile-card p-4 shadow-lg border-0 rounded-4 mb-5">
+    <div class="card profile-card p-4 shadow-lg border-0 rounded-4 mb-5" style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
         <div class="text-center">
-            <div class="profile-image mb-3">
+            <div class="profile-image mb-4 mx-auto">
                 <img src="{% if professional.details.profile_picture %}{{ professional.details.profile_picture.url }}{% else %}https://alicrie.vercel.app/images/anime+pfp+luffy-8.jpg{% endif %}" 
-                     alt="Profile Picture" class="rounded-circle">
+                     alt="Profile Picture" class="rounded-circle shadow" style="width: 150px; height: 150px; object-fit: cover; border: 5px solid #2c3e50;">
             </div>
             
-            <h2 class="fw-semibold">{{ professional.user.first_name }} {{ professional.user.last_name }}</h2>
-            <p class="text-muted">{{ professional.specialization }} • {{ professional.experience }} yrs experience</p>
-            <p class="mt-3">
-                {{ professional.details.bio|default:"No bio available." }}
+            <h2 class="fw-bold text-dark mb-1">{{ professional.user.first_name }} {{ professional.user.last_name }}</h2>
+            <div class="badge bg-primary bg-opacity-10 text-primary mb-3 px-3 py-2 rounded-pill">
+                <i class="fas fa-briefcase me-2"></i>
+                {{ professional.specialization }} • {{ professional.experience }} yrs experience
+            </div>
+            <p class="mt-3 px-lg-5 mx-auto" style="max-width: 700px; color: #555; line-height: 1.6;">
+                {{ professional.details.bio|default:"This professional hasn't shared a bio yet." }}
             </p>
         </div>
 
-        <hr>
+        <hr class="my-4" style="border-color: rgba(0,0,0,0.1);">
 
         <!-- Contact Info -->
-        <div class="row text-center mt-3">
+        <div class="row text-center mt-3 g-3">
             <div class="col-md-4">
-                <i class="fas fa-map-marker-alt"></i><br>
-                {{ professional.details.location|default:"Location not provided" }}
+                <div class="p-3 rounded-3 bg-white shadow-sm">
+                    <i class="fas fa-map-marker-alt text-primary mb-2"></i><br>
+                    <span class="text-dark">{{ professional.details.location|default:"Location not provided" }}</span>
+                </div>
             </div>
             <div class="col-md-4">
-                <i class="fas fa-envelope"></i><br>
-                {{ professional.user.email }}
+                <div class="p-3 rounded-3 bg-white shadow-sm">
+                    <i class="fas fa-envelope text-primary mb-2"></i><br>
+                    <a href="mailto:{{ professional.user.email }}" class="text-dark text-decoration-none">{{ professional.user.email }}</a>
+                </div>
             </div>
             <div class="col-md-4">
-                <i class="fas fa-phone"></i><br>
-                {{ professional.details.phone|default:"Not provided" }}
+                <div class="p-3 rounded-3 bg-white shadow-sm">
+                    <i class="fas fa-phone text-primary mb-2"></i><br>
+                    <span class="text-dark">{{ professional.details.phone|default:"Not provided" }}</span>
+                </div>
             </div>
         </div>
 
         <!-- Website & Social -->
         {% if professional.details.website %}
-        <div class="text-center mt-3">
-            <i class="fas fa-globe"></i>
-            <a href="{{ professional.details.website }}" target="_blank">{{ professional.details.website }}</a>
+        <div class="text-center mt-4">
+            <a href="{{ professional.details.website }}" target="_blank" class="btn btn-outline-dark rounded-pill px-4">
+                <i class="fas fa-globe me-2"></i> Visit Website
+            </a>
         </div>
         {% endif %}
 
         {% if professional.linkedin or professional.twitter %}
         <div class="text-center mt-3">
             {% if professional.linkedin %}
-                <a href="{{ professional.linkedin }}" target="_blank" class="btn btn-outline-dark btn-sm mx-1"><i class="fab fa-linkedin"></i></a>
+                <a href="{{ professional.linkedin }}" target="_blank" class="btn btn-outline-dark btn-icon rounded-circle mx-1"><i class="fab fa-linkedin-in"></i></a>
             {% endif %}
             {% if professional.twitter %}
-                <a href="{{ professional.twitter }}" target="_blank" class="btn btn-outline-dark btn-sm mx-1"><i class="fab fa-twitter"></i></a>
+                <a href="{{ professional.twitter }}" target="_blank" class="btn btn-outline-dark btn-icon rounded-circle mx-1"><i class="fab fa-twitter"></i></a>
             {% endif %}
         </div>
         {% endif %}
@@ -64,34 +74,54 @@
         <!-- Ratings -->
         <div class="text-center mt-4">
             {% if rating_avg %}
-                <p class="fs-5 text-dark mb-0">Average Rating: <strong>{{ rating_avg|floatformat:"1" }}/5.0</strong></p>
-                <p class="text-muted small">Based on {{ review_count }} review{{ review_count|pluralize }}</p>
+                <div class="d-inline-block bg-white p-3 rounded-4 shadow-sm mb-3">
+                    <p class="fs-4 text-dark mb-0 fw-bold">{{ rating_avg|floatformat:"1" }}<small class="text-muted">/5</small></p>
+                    <div class="text-warning mb-1">
+                        {% for _ in "12345"|make_list %}
+                            {% if forloop.counter0 < rating_avg %}
+                                <i class="fas fa-star"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <p class="text-muted small mb-0">Based on {{ review_count }} review{{ review_count|pluralize }}</p>
+                </div>
             {% else %}
-                <p class="text-muted">No ratings yet</p>
+                <p class="text-muted"><i class="far fa-star text-warning"></i> No ratings yet</p>
             {% endif %}
-            <a class="btn btn-dark mt-2" href="{% url 'booking' professional.id %}">Book an Appointment</a>
+            <a class="btn btn-dark mt-2 px-4 py-2 rounded-pill fw-bold" href="{% url 'booking' professional.id %}">
+                <i class="far fa-calendar-check me-2"></i> Book Appointment
+            </a>
         </div>
     </div>
 
     <!-- Available Slots -->
-    <h4 class="mb-3">Available Slots</h4>
-    {% with availability_list|dictsort:"date" as sorted_slots %}
-        {% if sorted_slots %}
-            <div class="d-flex flex-wrap gap-3">
-                {% for slot in sorted_slots %}
-                    {% if slot.professional.id == professional.id %}
-                        <div class="slot-card">
-                            <p class="mb-1 fw-bold">{{ slot.date }}</p>
-                            <p class="mb-0 text-muted">{{ slot.start_time }} - {{ slot.end_time }}</p>
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            </div>
-        {% else %}
-            <p class="text-muted">No available slots</p>
-        {% endif %}
-    {% endwith %}
-    <a href="{% url 'booking_page' %}" class="btn btn-secondary mt-4">← Back to Booking</a>
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+        <h4 class="mb-3 fw-bold text-dark">Available Slots</h4>
+        {% with availability_list|dictsort:"date" as sorted_slots %}
+            {% if sorted_slots %}
+                <div class="d-flex flex-wrap gap-3">
+                    {% for slot in sorted_slots %}
+                        {% if slot.professional.id == professional.id %}
+                            <div class="slot-card">
+                                <p class="mb-1 fw-bold">{{ slot.date }}</p>
+                                <p class="mb-0 text-muted">{{ slot.start_time }} - {{ slot.end_time }}</p>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="far fa-calendar-times text-muted fa-2x mb-2"></i>
+                    <p class="text-muted">No available slots at the moment</p>
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+    <a href="{% url 'booking_page' %}" class="btn btn-outline-dark rounded-pill px-4 mb-5">
+        <i class="fas fa-arrow-left me-2"></i> Back to Booking
+    </a>
 
 <!-- Reviews -->
 <div class="mt-5">
@@ -129,60 +159,127 @@
     {% endif %}
 
 
-        <!-- Review Form -->
-        <div class="card p-4 shadow-sm border-0 bg-white mt-4">
-            <h5 class="mb-3">Leave a Review</h5>
-            <form method="POST" action="{% url 'leave_review' professional.id %}">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label class="form-label">Rating:</label>
-                    <div class="rating-stars">
-                        {% for i in "54321" %}
-                            <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}">
-                            <label for="star{{ i }}" title="{{ i }} stars">★</label>
-                        {% endfor %}
+    <div class="card p-4 shadow-sm border-0 bg-white mt-4">
+        <h5 class="mb-3">Leave a Review</h5>
+        <form method="POST" action="{% url 'leave_review' professional.id %}">
+            {% csrf_token %}
+    
+            <!-- Rating Field -->
+            <div class="mb-3">
+                <label class="form-label">Rating:</label>
+                <div class="rating-stars">
+                    {% for i in "54321" %}
+                        <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" {% if review_form.rating.value|stringformat:"s" == i %}checked{% endif %}>
+                        <label for="star{{ i }}" title="{{ i }} stars">★</label>
+                    {% endfor %}
+                </div>
+                {% if review_form.rating.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ review_form.rating.errors.0 }}
                     </div>
-                </div>
-                <div class="mb-3">
-                    <label for="id_comment" class="form-label">Comment:</label>
-                    {{ review_form.comment }}
-                </div>
-                
-                <button type="submit" class="btn btn-dark">Submit Review</button>
-            </form>
-        </div>
+                {% endif %}
+            </div>
+    
+            <!-- Comment Field -->
+            <div class="mb-3">
+                <label for="id_comment" class="form-label">Comment:</label>
+                {{ review_form.comment }}
+                {% if review_form.comment.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ review_form.comment.errors.0 }}
+                    </div>
+                {% endif %}
+            </div>
+    
+            <button type="submit" class="btn btn-dark">Submit Review</button>
+        </form>
+    </div>
+    
     </div>
 </div>
 
 <!-- Styles -->
 <style>
-.profile-image img {
-    width: 130px;
-    height: 130px;
-    object-fit: cover;
-    border: 4px solid #000;
-}
-
-.profile-card {
-    background: #f9f9f9;
-    border-radius: 20px;
-}
-
-.slot-card {
-    background: rgba(255, 255, 255, 0.8);
-    padding: 12px 16px;
-    border-radius: 12px;
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    min-width: 160px;
-    text-align: center;
-    transition: 0.2s ease;
-}
-
-.slot-card:hover {
-    background-color: #000;
-    color: white;
-}
+    /* Base Styles */
+    .text-gradient-primary {
+        background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    
+    /* Profile Card */
+    .profile-card {
+        transition: transform 0.3s ease;
+        border: none;
+        overflow: hidden;
+    }
+    
+    .profile-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    /* Slot Cards */
+    .slot-card {
+        background: #ffffff;
+        padding: 15px 20px;
+        border-radius: 12px;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        min-width: 180px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .slot-card:hover {
+        background-color: #2c3e50;
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    /* Buttons */
+    .btn-dark {
+        background-color: #2c3e50;
+        border-color: #2c3e50;
+        transition: all 0.3s;
+    }
+    
+    .btn-dark:hover {
+        background-color: #1a252f;
+        border-color: #1a252f;
+    }
+    
+    .btn-outline-dark {
+        transition: all 0.3s;
+    }
+    
+    .btn-outline-dark:hover {
+        background-color: #2c3e50;
+        color: white;
+    }
+    
+    /* Social Icons */
+    .btn-icon {
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .profile-image img {
+            width: 120px;
+            height: 120px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+    }
 
 .rating-stars {
     display: inline-flex;

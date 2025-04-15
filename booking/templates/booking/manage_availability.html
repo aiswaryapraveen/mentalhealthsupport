@@ -6,113 +6,182 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
-<div style="max-width: 600px; margin: 20px auto; padding: 20px; background: #ffffff; 
-            border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
-    <h2 style="text-align: center; color: #000000; margin-bottom: 20px;">Manage Availability</h2>
-
-    {% if is_professional %}
-    
-    <form method="POST" style="display: grid; gap: 10px;">
-        {% csrf_token %}
-
-        <div>
-            <label for="id_date" style="font-weight: bold;">Date:</label>
-            <input type="text" name="date" id="id_date" required 
-                   style="width: 100%; padding: 10px; border: 1px solid #ced4da; 
-                          border-radius: 5px; font-size: 16px; background: #f9f9f9;">
+<div class="container my-5">
+    <div class="card shadow-lg border-0 rounded-3 overflow-hidden">
+        <!-- Card Header -->
+        <div class="card-header bg-dark text-white py-3">
+            <h2 class="h4 mb-0 text-center">
+                <i class="fas fa-calendar-alt me-2"></i>Manage Your Availability
+            </h2>
         </div>
-
-        <div style="display: flex; gap: 10px;">
-            <div style="flex: 1;">
-                <label for="id_start_time" style="font-weight: bold;">Start Time:</label>
-                <input type="time" name="start_time" id="id_start_time" required 
-                       style="width: 100%; padding: 10px; border: 1px solid #ced4da; 
-                              border-radius: 5px; font-size: 16px; background: #f9f9f9;">
+        
+        <!-- Card Body -->
+        <div class="card-body p-4">
+            {% if is_professional %}
+            <!-- Add Availability Form -->
+            <div class="mb-5 p-4 bg-light rounded-3">
+                <form method="POST" class="row g-3">
+                    {% csrf_token %}
+                    
+                    <!-- Date Picker -->
+                    <div class="col-md-12">
+                        <label for="id_date" class="form-label fw-bold">
+                            <i class="far fa-calendar me-2"></i>Date
+                        </label>
+                        <input type="text" name="date" id="id_date" class="form-control form-control-lg" required>
+                    </div>
+                    
+                    <!-- Time Inputs -->
+                    <div class="col-md-6">
+                        <label for="id_start_time" class="form-label fw-bold">
+                            <i class="far fa-clock me-2"></i>Start Time
+                        </label>
+                        <input type="time" name="start_time" id="id_start_time" class="form-control form-control-lg" required>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="id_end_time" class="form-label fw-bold">
+                            <i class="far fa-clock me-2"></i>End Time
+                        </label>
+                        <input type="time" name="end_time" id="id_end_time" class="form-control form-control-lg" required>
+                    </div>
+                    
+                    <!-- Max Capacity -->
+                    <div class="col-md-12">
+                        <label for="id_max_capacity" class="form-label fw-bold">
+                            <i class="fas fa-users me-2"></i>Maximum Bookings
+                        </label>
+                        <input type="number" name="max_capacity" id="id_max_capacity" min="1" class="form-control form-control-lg" required>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="col-12 mt-3">
+                        <button type="submit" class="btn btn-primary btn-lg w-100 py-3 fw-bold">
+                            <i class="fas fa-plus-circle me-2"></i>Add Availability Slot
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div style="flex: 1;">
-                <label for="id_end_time" style="font-weight: bold;">End Time:</label>
-                <input type="time" name="end_time" id="id_end_time" required 
-                       style="width: 100%; padding: 10px; border: 1px solid #ced4da; 
-                              border-radius: 5px; font-size: 16px; background: #f9f9f9;">
-            </div>
-        </div>
-
-        <div>
-            <label for="id_max_capacity" style="font-weight: bold;">Max Bookings:</label>
-            <input type="number" name="max_capacity" id="id_max_capacity" min="1" required 
-                   style="width: 100%; padding: 10px; border: 1px solid #ced4da; 
-                          border-radius: 5px; font-size: 16px; background: #f9f9f9;">
-        </div>
-
-        <button type="submit" style="width: 100%; padding: 12px; background: #000000; 
-                                     color: white; border: none; border-radius: 5px; 
-                                     font-size: 16px; cursor: pointer; transition: 0.3s;">
-            ➕ Add Availability
-        </button>
-    </form>
-
-    <h3 style="margin-top: 30px; color: #000000;">Current Availability</h3>
-    <ul style="list-style: none; padding: 0;">
-        {% for availability in availabilities %}
-            <li style="background: #f8f9fa; padding: 15px; margin-top: 10px; 
-                       border-radius: 8px; display: flex; justify-content: space-between; 
-                       align-items: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+            
+            <!-- Current Availability Section -->
+            <div class="mt-4">
+                <h3 class="h5 mb-3 fw-bold text-dark">
+                    <i class="fas fa-list-check me-2"></i>Your Current Availability
+                </h3>
                 
-                <span style="font-size: 16px;">
-                    📅 {{ availability.date }} - ⏰ {{ availability.start_time }} to {{ availability.end_time }}  
-                    | 🎟️ Max: {{ availability.max_capacity }}
-                </span>
-
-                {% if availability.is_booked %}
-                    <span style="background: green; color: white; padding: 6px 12px; border-radius: 5px; font-weight: bold;">
-                        Booked
-                    </span>
+                {% if availabilities %}
+                <div class="list-group">
+                    {% for availability in availabilities %}
+                    <div class="list-group-item list-group-item-action rounded-3 mb-2 p-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-primary bg-opacity-10 text-primary mb-1">
+                                    <i class="far fa-calendar me-1"></i>{{ availability.date }}
+                                </span>
+                                <span class="badge bg-info bg-opacity-10 text-info mb-1">
+                                    <i class="far fa-clock me-1"></i>{{ availability.start_time }} - {{ availability.end_time }}
+                                </span>
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                                    <i class="fas fa-user-friends me-1"></i>Max: {{ availability.max_capacity }}
+                                </span>
+                            </div>
+                            
+                            {% if availability.is_booked %}
+                            <span class="badge bg-success py-2 px-3 rounded-pill">
+                                <i class="fas fa-check-circle me-1"></i>Booked
+                            </span>
+                            {% else %}
+                            <form action="{% url 'delete_availability' availability.id %}" method="POST" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash-alt me-1"></i>Remove
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
                 {% else %}
-                    <form action="{% url 'delete_availability' availability.id %}" method="POST" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="delete-btn btn-dark">Delete</button>
-                    </form>
+                <div class="text-center py-4 bg-light rounded-3">
+                    <i class="far fa-calendar-times fa-2x text-muted mb-3"></i>
+                    <p class="text-muted mb-0">No availability slots added yet</p>
+                </div>
                 {% endif %}
-            </li>
-        {% empty %}
-            <p style="color: #888; text-align: center;">No availability slots added yet.</p>
-        {% endfor %}
-    </ul>
-
-    {% else %}
-        <p style="text-align: center; color: red;">{{ message }}</p>
-    {% endif %}
+            </div>
+            
+            {% else %}
+            <!-- Non-professional message -->
+            <div class="alert alert-danger text-center py-3">
+                <i class="fas fa-exclamation-circle me-2"></i>{{ message }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
 <style>
-    button:hover {
-        background: #0056b3; /* Darker blue */
+    .card {
+        border: none;
+        transition: transform 0.3s ease;
     }
-
-    .delete-btn {
-        background: rgb(250, 85, 85); 
-        color: white; 
-        padding: 6px 12px; 
-        border: none; 
-        border-radius: 5px; 
-        font-size: 14px; 
-        cursor: pointer; 
-        transition: 0.3s;
+    
+    .card:hover {
+        transform: translateY(-5px);
     }
-
-    .delete-btn:hover {
-        background: rgb(100, 0, 0);
+    
+    .form-control, .form-select {
+        border: 2px solid #e9ecef;
+        transition: all 0.3s;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #2c3e50;
+        box-shadow: 0 0 0 0.25rem rgba(44, 62, 80, 0.25);
+    }
+    
+    .btn-primary {
+        background-color: #2c3e50;
+        border-color: #2c3e50;
+        transition: all 0.3s;
+    }
+    
+    .btn-primary:hover {
+        background-color: #1a252f;
+        transform: translateY(-2px);
+    }
+    
+    .badge {
+        font-weight: 500;
+        padding: 0.5em 0.8em;
+    }
+    
+    .list-group-item {
+        transition: all 0.3s;
+        border-left: 4px solid #2c3e50;
+    }
+    
+    .list-group-item:hover {
+        transform: translateX(5px);
+    }
+    
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 1.5rem;
+        }
     }
 </style>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         flatpickr("#id_date", {
-            dateFormat: "Y-m-d",  // Format: YYYY-MM-DD
-            minDate: "today",      // Prevent past dates
-            disableMobile: true    // Ensures it works on all devices
+            dateFormat: "Y-m-d",
+            minDate: "today",
+            disableMobile: true
         });
     });
 </script>

@@ -1,318 +1,498 @@
 {% extends "core/base2.html" %}
 {% block content %}
 
-<h2 style="text-align: center; color: #333; margin-bottom: 20px;">Book a Professional</h2>
+<div class="booking-container">
+    <!-- Main Heading -->
+    <h1 class="main-heading">Book a Professional</h1>
 
-<!-- Filter Form -->
-<form method="GET" style="text-align: center; margin-bottom: 20px;">
-    <input type="text" name="specialization" placeholder="Filter by specialization" 
-           value="{{ specialization_filter }}" 
-           style="padding: 10px; width: 250px; border: 1px solid #ccc; border-radius: 5px;">
-    <button type="submit" 
-            style="padding: 10px 15px; background: #000000; color: white; border: none; border-radius: 5px; cursor: pointer;">
-        Filter
-    </button>
-</form>
+    <!-- Filter Form -->
+    <div class="filter-container">
+        <form method="GET" class="filter-form">
+            <input type="text" name="specialization" placeholder="Filter by specialization" 
+                   value="{{ specialization_filter }}" class="filter-input">
+            <button type="submit" class="filter-button">
+                <i class="fas fa-filter"></i> Filter
+            </button>
+        </form>
+    </div>
 
-<!-- Display Professionals -->
-<div class="professionals-grid">
-    {% for professional in professionals %}
-        <div class="professional-card">
-            <h3>{{ professional.user.first_name }} {{ professional.user.last_name }}</h3>
-            <p><strong>Specialization:</strong> {{ professional.specialization }}</p>
-            <p><strong>Experience:</strong> {{ professional.experience }} years</p>
-
-            <!-- Available Slots -->
-            <h4>Available Slots:</h4>
-            {% with availability_list|dictsort:"date" as sorted_slots %}
-                {% if sorted_slots %}
-                    <ul>
-                        {% for slot in sorted_slots %}
-                            {% if slot.professional.id == professional.id %}
-                                <li>{{ slot.date }} - {{ slot.start_time }} to {{ slot.end_time }}</li>
-                            {% endif %}
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p>No available slots</p>
-                {% endif %}
-            {% endwith %}
-
-            <!-- View Profile Button -->
-            <a href="{% url 'professional_profile' professional.id %}">View Profile</a>
-        </div>
-    {% empty %}
-        <p>No professionals found.</p>
-    {% endfor %}
-</div>
-
-
-    <div>
-        <div class="container mt-4">
-            <h2 class="text-dark">My Confirmed Bookings</h2>
+    <!-- Professionals Section -->
+    <section class="professionals-section">
+        <h2 class="section-title">Available Professionals</h2>
         
-            {% if bookings %}
-                <div class="row justify-content-center">
-                    {% for booking in bookings %}
-                    <div class="ticket">
-                        <div class="ticket-header">
-                            <h3>🎟 Appointment Pass</h3>
+        <div class="professionals-grid">
+            {% for professional in professionals %}
+                <div class="professional-card">
+                    <div class="professional-header">
+                        <div class="professional-avatar">
+                            {% if professional.details.profile_picture %}
+                                <img src="{{ professional.details.profile_picture.url }}" alt="{{ professional.user.first_name }}'s profile picture">
+                            {% else %}
+                                <span class="avatar-initials">{{ professional.user.first_name|first }}{{ professional.user.last_name|first }}</span>
+                            {% endif %}
                         </div>
-                        <div class="ticket-body">
-                            <p class="ticket-name">{{ booking.professional.user.first_name }} {{ booking.professional.user.last_name }}</p>
-                            <p class="ticket-specialization">{{ booking.professional.specialization }}</p>
-                            <div class="ticket-details">
-                                <p><strong>📅 Date:</strong> {{ booking.availability.date }}</p>
-                                <p><strong>⏰ Time:</strong> {{ booking.availability.start_time }} - {{ booking.availability.end_time }}</p>
+                        <h3>{{ professional.user.first_name }} {{ professional.user.last_name }}</h3>
+                    </div>
+                    
+                    <div class="professional-details">
+                        <p><i class="fas fa-briefcase"></i> <strong>Specialization:</strong> {{ professional.specialization }}</p>
+                        <p><i class="fas fa-clock"></i> <strong>Experience:</strong> {{ professional.experience }} years</p>
+                    </div>
+
+                    <!-- Available Slots -->
+                    <div class="slots-container">
+                        <h4><i class="far fa-calendar-alt"></i> Available Slots:</h4>
+                        {% with availability_list|dictsort:"date" as sorted_slots %}
+                            {% if sorted_slots %}
+                                <ul class="slots-list">
+                                    {% for slot in sorted_slots %}
+                                        {% if slot.professional.id == professional.id %}
+                                            <li>
+                                                <i class="far fa-calendar-check"></i> 
+                                                {{ slot.date }} - {{ slot.start_time }} to {{ slot.end_time }}
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="no-slots">No available slots</p>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+
+                    <!-- View Profile Button -->
+                    <a href="{% url 'professional_profile' professional.id %}" class="profile-button">
+                        <i class="fas fa-user-circle"></i> View Profile
+                    </a>
+                </div>
+            {% empty %}
+                <p class="no-professionals">No professionals found matching your criteria.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- My Bookings Section -->
+    <section class="bookings-section">
+        <h2 class="section-title">My Confirmed Bookings</h2>
+        
+        {% if bookings %}
+            <div class="bookings-grid">
+                {% for booking in bookings %}
+                <div class="booking-ticket">
+                    <div class="ticket-header">
+                        <h3><i class="fas fa-ticket-alt"></i> Appointment Pass</h3>
+                    </div>
+                    <div class="ticket-body">
+                        <div class="professional-info">
+                            <div class="professional-avatar">
+                                {% if booking.professional.details.profile_picture %}
+                                    <img src="{{ booking.professional.details.profile_picture.url }}" alt="{{ booking.professional.user.first_name }}'s profile picture">
+                                {% else %}
+                                    <span class="avatar-initials">{{ booking.professional.user.first_name|first }}{{ booking.professional.user.last_name|first }}</span>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <p class="ticket-name">{{ booking.professional.user.first_name }} {{ booking.professional.user.last_name }}</p>
+                                <p class="ticket-specialization">{{ booking.professional.specialization }}</p>
                             </div>
                         </div>
-                        <div class="ticket-footer">
-                            <p>✅ Verified Booking</p>
-                            <p class="ticket-note">Arrive on time for a smooth session! 🚀</p>
+                        <div class="ticket-details">
+                            <p><i class="far fa-calendar"></i> <strong>Date:</strong> {{ booking.availability.date }}</p>
+                            <p><i class="far fa-clock"></i> <strong>Time:</strong> {{ booking.availability.start_time }} - {{ booking.availability.end_time }}</p>
                         </div>
-                    </div>                    
-                    {% endfor %}
+                    </div>
+                    <div class="ticket-footer">
+                        <p><i class="fas fa-check-circle"></i> Verified Booking</p>
+                        <p class="ticket-note">Please arrive on time for your appointment</p>
+                    </div>
                 </div>
-            {% else %}
-                <p class="text-muted">You have no confirmed bookings yet.</p>
-            {% endif %}
-        </div>        
-    </div>
-    <style>
-    .ticket {
-        width: 400px;
-        background: linear-gradient(135deg, #ffffff, #f8f9fa);
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        padding: 15px;
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-bookings">
+                <i class="far fa-calendar-times"></i>
+                <p>You have no confirmed bookings yet.</p>
+            </div>
+        {% endif %}
+    </section>
+</div>
+
+<style>
+    /* Base Styles */
+    .booking-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #333;
+    }
+
+    .main-heading {
         text-align: center;
-        border: 1px solid #ddd;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        font-size: 2.2rem;
+        font-weight: 600;
         position: relative;
-        margin: 20px auto;
+    }
+
+    .main-heading::after {
+        content: '';
+        display: block;
+        width: 80px;
+        height: 4px;
+        background: #3498db;
+        margin: 10px auto;
+        border-radius: 2px;
+    }
+
+    .section-title {
+        color: #2c3e50;
+        margin: 30px 0 20px;
+        font-size: 1.5rem;
+        font-weight: 500;
+    }
+
+    /* Filter Section */
+    .filter-container {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .filter-form {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .filter-input {
+        padding: 12px 15px;
+        width: 300px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: all 0.3s;
+    }
+
+    .filter-input:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        outline: none;
+    }
+
+    .filter-button {
+        padding: 12px 20px;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .filter-button:hover {
+        background: #2980b9;
+    }
+
+    /* Professionals Grid */
+    .professionals-section {
+        margin-bottom: 40px;
+    }
+
+    .professionals-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 25px;
+    }
+
+    .professional-card {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        border: 1px solid #eee;
+    }
+
+    .professional-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .professional-header {
+        background: #2c3e50;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        position: relative;
+    }
+
+    .professional-avatar {
+        width: 80px;
+        height: 80px;
+        background: #3498db;
+        border-radius: 50%;
+        margin: 0 auto 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
         overflow: hidden;
     }
-    
-    /* Decorative cutouts for ticket effect */
-    .ticket::before, .ticket::after {
-        content: "";
-        position: absolute;
-        width: 30px;
-        height: 30px;
-        background: white;
-        border-radius: 50%;
-        top: 50%;
-        transform: translateY(-50%);
-        box-shadow: 0 0 0 2px #ddd;
+
+    .professional-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
-    
-    .ticket::before {
-        left: -15px;
-    }
-    
-    .ticket::after {
-        right: -15px;
-    }
-    
-    .ticket-header {
-        background: #000000 !important;
+
+    .avatar-initials {
+        font-size: 1.8rem;
         color: white;
-        padding: 10px;
-        border-radius: 8px 8px 0 0;
-        font-weight: bold;
     }
-    
-    .ticket-name {
-        font-size: 20px;
-        font-weight: bold;
-        color: #333;
-        margin-top: 10px;
+
+    .professional-card h3 {
+        margin: 0;
+        font-size: 1.3rem;
     }
-    
-    .ticket-specialization {
-        font-size: 16px;
+
+    .professional-details {
+        padding: 20px;
+    }
+
+    .professional-details p {
+        margin: 10px 0;
+        font-size: 0.95rem;
         color: #555;
-        font-style: italic;
     }
-    
+
+    .professional-details i {
+        width: 20px;
+        color: #3498db;
+        margin-right: 8px;
+    }
+
+    /* Slots Section */
+    .slots-container {
+        padding: 0 20px 15px;
+    }
+
+    .slots-container h4 {
+        color: #2c3e50;
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .slots-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .slots-list li {
+        background: #eaf4fd;
+        padding: 8px 12px;
+        border-radius: 5px;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #2980b9;
+    }
+
+    .no-slots {
+        color: #95a5a6;
+        font-style: italic;
+        font-size: 0.9rem;
+        text-align: center;
+        padding: 10px;
+    }
+
+    /* Profile Button */
+    .profile-button {
+        display: block;
+        text-align: center;
+        padding: 12px;
+        margin: 0 20px 20px;
+        background: #3498db;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: background 0.3s;
+    }
+
+    .profile-button:hover {
+        background: #2980b9;
+    }
+
+    .profile-button i {
+        margin-right: 8px;
+    }
+
+    /* No Professionals Message */
+    .no-professionals {
+        text-align: center;
+        grid-column: 1 / -1;
+        color: #95a5a6;
+        padding: 30px;
+        font-size: 1.1rem;
+    }
+
+    /* Bookings Section */
+    .bookings-section {
+        margin-top: 50px;
+    }
+
+    .bookings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 25px;
+    }
+
+    /* Ticket Styling */
+    .booking-ticket {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border: 1px solid #eee;
+        position: relative;
+    }
+
+    .ticket-header {
+        background: #2c3e50;
+        color: white;
+        padding: 15px;
+        text-align: center;
+    }
+
+    .ticket-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .ticket-body {
+        padding: 20px;
+    }
+
+    .professional-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .ticket-name {
+        font-weight: 600;
+        margin: 0;
+        color: #2c3e50;
+        font-size: 1.1rem;
+    }
+
+    .ticket-specialization {
+        margin: 5px 0 0;
+        color: #7f8c8d;
+        font-size: 0.9rem;
+    }
+
     .ticket-details {
-        margin-top: 10px;
-        font-size: 14px;
+        margin-top: 15px;
     }
-    
+
     .ticket-details p {
-        margin: 5px 0;
+        margin: 8px 0;
+        color: #555;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
-    
+
+    .ticket-details i {
+        color: #3498db;
+        width: 20px;
+    }
+
     .ticket-footer {
-        background: #f0f0f0;
-        padding: 8px;
-        border-radius: 0 0 8px 8px;
-        font-size: 14px;
-        color: #333;
-        font-weight: bold;
+        background: #f8f9fa;
+        padding: 12px 20px;
+        text-align: center;
+        border-top: 1px solid #eee;
+        color: #2c3e50;
+        font-size: 0.9rem;
     }
-    
+
+    .ticket-footer i {
+        color: #27ae60;
+        margin-right: 5px;
+    }
+
     .ticket-note {
-        font-size: 12px;
-        color: #666;
-        margin-top: 5px;
+        font-size: 0.8rem;
+        color: #95a5a6;
+        margin: 5px 0 0;
         font-style: italic;
     }
-    .professionals-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-    padding: 20px;
-}
 
-.professional-card {
-    border: 1px solid #ddd;
-    padding: 20px;
-    text-align: center;
-    border-radius: 10px;
-    background: #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: 0.3s;
-}
+    /* No Bookings Message */
+    .no-bookings {
+        text-align: center;
+        padding: 30px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        color: #95a5a6;
+    }
 
-.professional-card:hover {
-    transform: scale(1.05);
-}
+    .no-bookings i {
+        font-size: 2rem;
+        margin-bottom: 15px;
+        color: #bdc3c7;
+    }
 
-.professional-card h3 {
-    color: #333;
-    font-size: 24px;
-    margin-bottom: 10px;
-    font-weight: bold;
-}
+    .no-bookings p {
+        margin: 0;
+        font-size: 1.1rem;
+    }
 
-.professional-card p {
-    font-size: 16px;
-    color: #555;
-    margin-bottom: 10px;
-}
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .filter-form {
+            flex-direction: column;
+            align-items: center;
+        }
 
-.professional-card h4 {
-    color: #007bff;
-    font-size: 18px;
-}
+        .filter-input {
+            width: 100%;
+        }
 
-.professional-card ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.professional-card li {
-    background: #e3f2fd;
-    padding: 8px 12px;
-    border-radius: 5px;
-    display: inline-block;
-    margin: 5px;
-    font-size: 14px;
-    color: #00796b;
-}
-
-.professional-card a {
-    display: inline-block;
-    margin-top: 20px;
-    padding: 12px 20px;
-    background: #000000;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-    transition: 0.3s;
-    text-transform: uppercase;
-}
-
-.professional-card a:hover {
-    background: #333;
-}
-
-.confirmed-bookings {
-    margin-top: 40px;
-}
-
-.confirmed-bookings h2 {
-    color: #000000 !important;
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.bookings-row {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.ticket {
-    width: 400px;
-    background: linear-gradient(135deg, #ffffff, #f8f9fa);
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    padding: 15px;
-    text-align: center;
-    border: 1px solid #ddd;
-    position: relative;
-    margin: 20px;
-    overflow: hidden;
-}
-
-.ticket::before, .ticket::after {
-    content: "";
-    position: absolute;
-    width: 30px;
-    height: 30px;
-    background: white;
-    border-radius: 50%;
-    top: 50%;
-    transform: translateY(-50%);
-    box-shadow: 0 0 0 2px #ddd;
-}
-
-.ticket::before {
-    left: -15px;
-}
-
-.ticket::after {
-    right: -15px;
-}
-
-.ticket-header {
-    background: #007bff;
-    color: white;
-    padding: 10px;
-    border-radius: 8px 8px 0 0;
-    font-weight: bold;
-}
-
-.ticket-body p {
-    font-size: 16px;
-    color: #333;
-}
-
-.ticket-details {
-    margin-top: 10px;
-    font-size: 14px;
-}
-
-.ticket-footer {
-    background: #f0f0f0;
-    padding: 8px;
-    border-radius: 0 0 8px 8px;
-    font-size: 14px;
-    color: #333;
-    font-weight: bold;
-}
-
-.ticket-note {
-    font-size: 12px;
-    color: #666;
-    margin-top: 5px;
-    font-style: italic;
-}
+        .professionals-grid, .bookings-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .professional-avatar {
+            width: 70px;
+            height: 70px;
+        }
+    }
 </style>
-    </style>      
-    </div>
+
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
 {% endblock %}

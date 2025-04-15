@@ -1,197 +1,139 @@
 {% extends 'core/base2.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <h3 class="mb-3 text-center">🔔 Notifications</h3>
-
-    {% if unread_count > 0 %}
-        <div class="text-center mb-3">
-            <span class="badge unread-badge">{{ unread_count }} Unread</span>
-        </div>
-    {% endif %}
-
-    <div class="notifications-container">
-        <form action="{% url 'mark_all_notifications_as_read' %}" method="post" class="mark-all-form">
-            {% csrf_token %}
-            <button type="submit" class="btn-mark-all">✔ Mark All as Read</button>
-        </form>
-
-        {% for notification in notifications %}
-            <div class="notification-card {% if not notification.is_read %} unread {% endif %}">
-                <div class="notification-content">
-                    {% autoescape off %}
-                        {{ notification.message }}
-                    {% endautoescape %}
-                    <div class="notification-time">{{ notification.created_at|date:"M d, Y H:i" }}</div>
-                </div>
-
-                <div class="notification-actions">
-                    {% if not notification.is_read %}
-                        <a href="{% url 'mark_notification_as_read' notification.id %}" class="mark-read-btn">✔ Mark Read</a>
-                    {% endif %}
-
-                    <form action="{% url 'delete_notification' notification.id %}" method="POST" class="delete-form">
-                        {% csrf_token %}
-                        <button type="submit" class="delete-btn">🗑 Delete</button>
-                    </form>
-                </div>
+<div class="container py-5">
+    <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+        <!-- Card Header -->
+        <div class="card-header bg-dark text-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="h4 mb-0">
+                    <i class="fas fa-bell me-2"></i>Your Notifications
+                </h2>
+                {% if unread_count > 0 %}
+                <span class="badge bg-danger rounded-pill py-2 px-3">
+                    {{ unread_count }} unread
+                </span>
+                {% endif %}
             </div>
-        {% empty %}
-            <div class="alert alert-info text-center">No notifications found.</div>
-        {% endfor %}
+        </div>
+        
+        <!-- Card Body -->
+        <div class="card-body p-0">
+            <div class="d-flex justify-content-end p-3 border-bottom">
+                <form action="{% url 'mark_all_notifications_as_read' %}" method="post" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                        <i class="fas fa-check-circle me-1"></i>Mark All as Read
+                    </button>
+                </form>
+            </div>
+            
+            {% if notifications %}
+            <div class="list-group list-group-flush">
+                {% for notification in notifications %}
+                <div class="list-group-item {% if not notification.is_read %}bg-light{% endif %} border-0 py-3 px-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1 me-3">
+                            {% autoescape off %}
+                            <div class="mb-1 {% if not notification.is_read %}fw-bold{% endif %}">
+                                {{ notification.message }}
+                            </div>
+                            {% endautoescape %}
+                            <small class="text-muted">
+                                <i class="far fa-clock me-1"></i>{{ notification.created_at|date:"M d, Y H:i" }}
+                            </small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            {% if not notification.is_read %}
+                            <a href="{% url 'mark_notification_as_read' notification.id %}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                <i class="fas fa-check me-1"></i>Read
+                            </a>
+                            {% endif %}
+                            <form action="{% url 'delete_notification' notification.id %}" method="POST" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                    <i class="fas fa-trash me-1" style="color: red;"></i> Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="far fa-bell-slash fa-3x text-muted mb-3"></i>
+                <h4 class="h5 text-muted">No notifications yet</h4>
+                <p class="text-muted">You'll see important updates here</p>
+            </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 
 <style>
-    /* General Styling */
-    body {
-        background-color: #f8f9fa;
-        font-family: 'Arial', sans-serif;
-    }
-
-    /* Notification Container */
-    .notifications-container {
-        max-width: 600px;
-        margin: auto;
-        background: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Unread Badge */
-    .unread-badge {
-        font-size: 14px;
-        background: #ff4d4d;
-        color: white;
-        padding: 6px 12px;
-        border-radius: 5px;
-    }
-
-    /* Mark All Button */
-    .mark-all-form {
-        text-align: right;
-        margin-bottom: 12px;
-    }
-
-    .btn-mark-all {
-        background: #007bff;
-        color: white;
-        padding: 8px 14px;
+    .card {
         border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: 0.3s;
+        transition: transform 0.3s ease;
     }
-
-    .btn-mark-all:hover {
-        background: #0056b3;
+    
+    .card:hover {
+        transform: translateY(-5px);
     }
-
-    /* Notification Card */
-    .notification-card {
-        background: #fff;
-        padding: 15px 18px;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-        margin-bottom: 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: transform 0.2s ease-in-out;
-        border-left: 5px solid transparent;
-    }
-
-    /* Unread Notification Styling */
-    .notification-card.unread {
-        background: #fff9e6;
-        border-left-color: #ff9800;
-        font-weight: 600;
-    }
-
-    /* Hover Effect */
-    .notification-card:hover {
-        transform: scale(1.02);
-    }
-
-    /* Notification Content */
-    .notification-content {
-        flex-grow: 1;
-    }
-
-    /* Timestamp */
-    .notification-time {
-        font-size: 13px;
-        color: #888;
-        margin-top: 5px;
-    }
-
-    /* Actions Container */
-    .notification-actions {
-        display: flex;
-        gap: 8px;
-    }
-
-    /* Mark as Read Button */
-    .mark-read-btn {
-        font-size: 14px;
-        color: #28a745;
-        text-decoration: none;
-        padding: 6px 10px;
-        border: 1px solid #28a745;
-        border-radius: 5px;
+    
+    .list-group-item {
         transition: all 0.3s ease;
+        border-left: 4px solid transparent;
     }
-
-    .mark-read-btn:hover {
-        background: #28a745;
+    
+    .list-group-item.bg-light {
+        border-left-color: #2c3e50;
+        background-color: rgba(44, 62, 80, 0.05) !important;
+    }
+    
+    .list-group-item:hover {
+        background-color: rgba(44, 62, 80, 0.03);
+    }
+    
+    .btn-outline-primary {
+        border-color: #2c3e50;
+        color: #2c3e50;
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: #2c3e50;
         color: white;
     }
-
-    /* Delete Button */
-    .delete-btn {
-        font-size: 14px;
+    
+    .btn-outline-success {
+        border-color: #28a745;
+        color: #28a745;
+    }
+    
+    .btn-outline-success:hover {
+        background-color: #28a745;
         color: white;
-        background: #dc3545;
-        border: none;
-        padding: 6px 10px;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background 0.3s ease;
     }
-
-    .delete-btn:hover {
-        background: #c82333;
+    
+    .btn-outline-danger {
+        border-color: #dc3545;
+        color: #dc3545;
     }
-
-    /* Prevent form button from shifting layout */
-    .delete-form {
-        margin: 0;
+    
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        color: white;
     }
-
-    /* Make links inside notifications look like text */
-    .notification-content a {
-        text-decoration: none;
-        color: inherit;
-    }
-
-    .notification-content a:hover {
-        text-decoration: underline;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 600px) {
-        .notification-card {
+    
+    @media (max-width: 576px) {
+        .d-flex {
             flex-direction: column;
-            align-items: flex-start;
         }
-
-        .notification-actions {
+        
+        .gap-2 {
             margin-top: 10px;
             justify-content: flex-start;
         }
     }
 </style>
-
 {% endblock %}

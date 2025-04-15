@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Availability, Booking
 from .forms import AvailabilityForm
@@ -7,22 +7,17 @@ from django.contrib import messages
 from core.models import Notification
 from django.utils.html import format_html
 from django.urls import reverse
-from users.models import CustomUser
+from django.utils.timezone import now
+from users.models import Professional1, ProfessionalReview, CustomUser
+from django.db.models import Q, Avg, Count
+from users.forms import ReviewForm
+from django.core.exceptions import ObjectDoesNotExist
 
-from django.utils.timezone import now, timedelta
-from django.contrib import messages
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .models import Availability, Booking
-from core.models import Notification
-from .forms import AvailabilityForm
 
 @login_required
 def manage_availability(request):
-    # ✅ Remove past availabilities before processing anything else
     current_time = now()
     
-    # Delete past availability slots (including expired ones from today)
     Availability.objects.filter(
         date__lt=current_time.date()
     ).delete()
@@ -32,14 +27,12 @@ def manage_availability(request):
         end_time__lte=current_time.time()
     ).delete()
 
-    # Check if the user is a professional
     if not request.user.is_professional:
         return render(request, 'booking/manage_availability.html', {
             'message': "You are not a professional, so you cannot add availability.",
             'is_professional': False
         })
 
-    # Try to get the professional profile
     professional = getattr(request.user, 'professional1', None)
     if not professional:
         return render(request, 'booking/manage_availability.html', {
@@ -47,7 +40,6 @@ def manage_availability(request):
             'is_professional': False
         })
 
-    # Get availability slots for the professional (only upcoming ones)
     availabilities = Availability.objects.filter(professional=professional)  
 
     if request.method == "POST":
@@ -135,14 +127,6 @@ def delete_availability(request, availability_id):
     availability.delete()
     return redirect('manage_availability')  # Redirect after deletion
 
-from django.shortcuts import render, get_object_or_404
-from .models import Professional1
-
-from django.shortcuts import render
-from users.models import Professional1
-from django.utils.timezone import now
-from booking.models import Availability
-from django.db.models import Q
 def booking_page(request):
     specialization_filter = request.GET.get("specialization", "").strip()
     # Get all approved professionals
@@ -169,17 +153,7 @@ def booking_page(request):
     }
 
     return render(request, "booking/booking_page.html", context)
-from users.forms import ReviewForm
-from users.models import ProfessionalReview  # Assuming this is the correct model import
-from django.db.models import Avg
 
-from django.db.models import Avg, Count
-from users.models import ProfessionalReview, Professional1
-
-import math
-from django.db.models import Avg, Count
-from django.shortcuts import render, get_object_or_404
-from django.core.exceptions import ObjectDoesNotExist
 def professional_profile(request, professional_id):
     professional = get_object_or_404(Professional1.objects.select_related('user'), id=professional_id)
 
@@ -376,4 +350,3 @@ def update_booking_status(request, booking_id, status):
 
     messages.success(request, f"Booking status updated to {status}.")
     return redirect('booking_view')
-

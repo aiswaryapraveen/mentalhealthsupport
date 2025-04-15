@@ -173,18 +173,29 @@
         {% if reviews %}
             <div id="reviews-container">
                 {% for review in reviews %}
-                    <div class="review-item border-bottom pb-2 mb-2 {% if forloop.counter > 3 %}d-none extra-review{% endif %}">
-                        <p class="mb-1">
-                            <strong>{{ review.user.get_full_name|default:review.user.username }}</strong> rated {{ review.rating }} ⭐
-                        </p>
-                        <p class="mb-0 text-muted">{{ review.comment }}</p>
-                        <small class="text-muted">{{ review.created_at|date:"F j, Y" }}</small>
+                    <div class="review-item border-bottom pb-3 mb-3 {% if forloop.counter > 3 %}d-none extra-review{% endif %}">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong>{{ review.user.get_full_name|default:review.user.username }}</strong>
+                            <div>
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <span class="text-warning">★</span>
+                                    {% else %}
+                                        <span class="text-muted">★</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <p class="mb-2">{{ review.comment }}</p>
+                        <small class="text-muted">{{ review.created_at|date:"M j, Y · g:i a" }}</small>
                     </div>
                 {% endfor %}
             </div>
             {% if reviews|length > 3 %}
                 <div class="text-center mt-3">
-                    <button class="btn btn-outline-primary rounded-pill px-4" onclick="toggleReviews(this)">Show More</button>
+                    <button class="btn btn-outline-primary rounded-pill px-4" onclick="toggleReviews(this)">
+                        Show More <i class="fas fa-chevron-down ms-2"></i>
+                    </button>
                 </div>
             {% endif %}
         {% else %}
@@ -195,15 +206,15 @@
     {% endif %}
 </div>
 <script>
-    function toggleReviews(btn) {
-        const extraReviews = document.querySelectorAll('.extra-review');
-        const isHidden = extraReviews[0].classList.contains('d-none');
-
-        extraReviews.forEach(review => {
-            review.classList.toggle('d-none');
-        });
-
-        btn.textContent = isHidden ? 'Show Less' : 'Show More';
+    function toggleReviews(button) {
+        const hiddenReviews = document.querySelectorAll('.extra-review');
+        hiddenReviews.forEach(el => el.classList.toggle('d-none'));
+        
+        if (button.textContent.includes('More')) {
+            button.innerHTML = 'Show Less <i class="fas fa-chevron-up ms-2"></i>';
+        } else {
+            button.innerHTML = 'Show More <i class="fas fa-chevron-down ms-2"></i>';
+        }
     }
 </script>
 
